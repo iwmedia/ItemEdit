@@ -36,7 +36,7 @@ public class Netherite extends SubCmd {
 
         ItemMeta meta = item.getItemMeta();
         if (meta instanceof Damageable) {
-            ((Damageable) meta).setDamage(item.getType().getMaxDurability() - type.getDurability());
+            ((Damageable) meta).setMaxDamage(type.getDurability());
         }
 
         if (!hasAttribute(meta, Attribute.ARMOR)) {
