@@ -45,6 +45,7 @@ public class Rename extends SubCmd {
         ItemMeta itemMeta = ItemUtils.getMeta(item);
         if (args.length == 1) {
             itemMeta.setDisplayName(" ");
+            itemMeta.setItemName(" ");
             item.setItemMeta(itemMeta);
             updateView(p);
             return;
@@ -52,6 +53,7 @@ public class Rename extends SubCmd {
 
         if (args.length == 2 && args[1].equalsIgnoreCase("clear")) {
             itemMeta.setDisplayName(null);
+            itemMeta.setItemName(null);
             item.setItemMeta(itemMeta);
             updateView(p);
             return;
@@ -71,6 +73,7 @@ public class Rename extends SubCmd {
         }
 
         itemMeta.setDisplayName(name);
+        itemMeta.setItemName(name);
         item.setItemMeta(itemMeta);
         updateView(p);
     }
