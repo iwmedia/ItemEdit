@@ -22,13 +22,13 @@ public class Rename extends SubCmd {
 
     public Rename(@NotNull ItemEditCommand cmd) {
         super("rename", cmd, true, true);
-        lengthLimit = getPlugin().getConfig().getInt("blocked.rename-length-limit", 120);
+        this.lengthLimit = this.getPlugin().getConfig().getInt("blocked.rename-length-limit", 120);
     }
 
     @Override
     public void reload() {
         super.reload();
-        lengthLimit = getPlugin().getConfig().getInt("blocked.rename-length-limit", 120);
+        this.lengthLimit = this.getPlugin().getConfig().getInt("blocked.rename-length-limit", 120);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class Rename extends SubCmd {
             itemMeta.setDisplayName(" ");
             itemMeta.setItemName(" ");
             item.setItemMeta(itemMeta);
-            updateView(p);
+            this.updateView(p);
             return;
         }
 
@@ -53,22 +53,22 @@ public class Rename extends SubCmd {
             itemMeta.setItemName(null);
             item.setItemMeta(itemMeta);
             //TODO feedback
-            updateView(p);
+            this.updateView(p);
             return;
         }
 
         if (args.length == 2 && args[1].equalsIgnoreCase("-copy")) {
-            copies.put(p.getUniqueId(), itemMeta.getDisplayName());
+            this.copies.put(p.getUniqueId(), itemMeta.getDisplayName());
             //TODO feedback
-            updateView(p);
+            this.updateView(p);
             return;
         }
 
         if (args.length == 2 && args[1].equalsIgnoreCase("-paste")) {
-            itemMeta.setDisplayName(copies.get(p.getUniqueId()));
+            itemMeta.setDisplayName(this.copies.get(p.getUniqueId()));
             item.setItemMeta(itemMeta);
             //TODO feedback
-            updateView(p);
+            this.updateView(p);
             return;
         }
 
@@ -77,15 +77,15 @@ public class Rename extends SubCmd {
             bname.append(" ").append(args[i]);
         }
 
-        String name = Util.formatText(p, bname.toString(), getPermission());
+        String name = Util.formatText(p, bname.toString(), this.getPermission());
         if (Util.hasBannedWords(p, name)) {
             //TODO feedback
             return;
         }
 
-        if (!allowedLengthLimit(p, ChatColor.stripColor(name))) {
+        if (!this.allowedLengthLimit(p, ChatColor.stripColor(name))) {
             Util.sendMessage(p, ItemEdit.get().getLanguageConfig(p).loadMessage("blocked-by-rename-length-limit",
-                    "", null, true, "%limit%", String.valueOf(lengthLimit)));
+                    "", null, true, "%limit%", String.valueOf(this.lengthLimit)));
             return;
         }
 
@@ -93,7 +93,7 @@ public class Rename extends SubCmd {
         itemMeta.setItemName(name);
         item.setItemMeta(itemMeta);
         //TODO feedback
-        updateView(p);
+        this.updateView(p);
     }
 
     @Override
@@ -105,20 +105,28 @@ public class Rename extends SubCmd {
             return Collections.emptyList();
         }
         ItemStack item = this.getItemInHand((Player) sender);
+
+        List<String> result = new ArrayList<>();
+
         if (item != null && item.hasItemMeta()) {
             ItemMeta meta = ItemUtils.getMeta(item);
             if (meta.hasDisplayName()) {
-                return CompleteUtility.complete(args[1],
-                        meta.getDisplayName().replace('§', '&'), "-clear", "-paste", "-copy");
+                result.addAll(Arrays.asList(
+                        meta.getDisplayName().replace('§', '&'),
+                        "-clear", "-copy"
+                ));
             }
         }
-        return Collections.emptyList();
+
+        result.add("-paste");
+
+        return CompleteUtility.complete(args[1], result);
     }
 
     private boolean allowedLengthLimit(Player who, String text) {
-        if (lengthLimit < 0 || who.hasPermission("itemedit.bypass.rename_length_limit")) {
+        if (this.lengthLimit < 0 || who.hasPermission("itemedit.bypass.rename_length_limit")) {
             return true;
         }
-        return text.length() <= lengthLimit;
+        return text.length() <= this.lengthLimit;
     }
 }
