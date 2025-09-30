@@ -11,18 +11,19 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 
 public class BookType extends SubCmd {
 
-    public BookType(ItemEditCommand cmd) {
+    public BookType(@NotNull final ItemEditCommand cmd) {
         super("booktype", cmd, true, true);
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
         ItemStack item = this.getItemInHand(p);
         if (!(item.getType() == Material.WRITTEN_BOOK)) {
@@ -40,8 +41,9 @@ public class BookType extends SubCmd {
                 return;
             }
 
-            if (args.length != 2)
+            if (args.length != 2) {
                 throw new IllegalArgumentException();
+            }
             BookMeta.Generation type = Aliases.BOOK_TYPE.convertAlias(args[1]);
             if (type == null) {
                 onWrongAlias("wrong-generation", p, Aliases.BOOK_TYPE);
@@ -58,9 +60,10 @@ public class BookType extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (args.length == 2)
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        if (args.length == 2) {
             return CompleteUtility.complete(args[1], Aliases.BOOK_TYPE);
+        }
         return Collections.emptyList();
     }
 }

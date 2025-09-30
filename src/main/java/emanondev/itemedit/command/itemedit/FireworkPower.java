@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.FireworkMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +21,7 @@ public class FireworkPower extends SubCmd {
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
         ItemStack item = this.getItemInHand(p);
         if (!(item.getItemMeta() instanceof FireworkMeta)) {
@@ -31,11 +32,13 @@ public class FireworkPower extends SubCmd {
         FireworkMeta itemMeta = (FireworkMeta) ItemUtils.getMeta(item);
 
         try {
-            if (args.length != 2)
+            if (args.length != 2) {
                 throw new IllegalArgumentException();
+            }
             int power = Integer.parseInt(args[1]);
-            if (power < 0 || power > 5)
+            if (power < 0 || power > 5) {
                 throw new IllegalArgumentException();
+            }
             itemMeta.setPower(power);
             item.setItemMeta(itemMeta);
             updateView(p);
@@ -46,11 +49,12 @@ public class FireworkPower extends SubCmd {
 
     // itemedit fireworkpower <power>
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
         if (args.length == 2) {
             ArrayList<String> list = new ArrayList<>();
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 6; i++) {
                 list.add(String.valueOf(i));
+            }
             return list;
         }
         return Collections.emptyList();

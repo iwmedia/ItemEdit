@@ -3,8 +3,14 @@ main: ${groupId}.${project.name}
 version: "${project.version}"
 author: emanon
 api-version: 1.13
-folia-supported: true
 softdepend: [ SCore,Vault,SuperVanish,PremiumVanish,PlaceholderAPI,ShopGUIPlus,ItemBridge,MythicMobs,IridiumSkyblock,ASkyBlock,BentoBox-BSkyBlock,uSkyBlock,IslandWorld,FabledSkyBlock,SimpleSkyblock,SkyBlock,SuperiorSkyblock2,SuperiorSkyblock,DungeonMMO ]
+
+# Additional info
+modrinth-project-id: "yx81EHRu"
+modrinth-project-name: "itemedit"
+spigot-resource-id: 40993
+bstats-plugin-id: 15076
+folia-supported: true
 
 libraries:
   - net.kyori:adventure-api:4.20.0
@@ -206,6 +212,7 @@ permissions:
       itemedit.itemedit.food: true
       itemedit.itemedit.glider: true
       itemedit.itemedit.itemmodel: true
+      itemedit.itemedit.equipment: true
   itemedit.itemedit.rename:
     default: op
     description: Allow editing item name
@@ -571,3 +578,6 @@ permissions:
   itemedit.itemedit.itemmodel:
     default: op
     description: Allow setting item texture model
+  itemedit.itemedit.equipment:
+    default: op
+    description: Allow setting equipment properties

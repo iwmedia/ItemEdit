@@ -3,11 +3,9 @@ package emanondev.itemedit.utility;
 import emanondev.itemedit.aliases.IAliasSet;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -23,9 +21,9 @@ public final class CompleteUtility {
      * Completes a prefix based on an enum class. This method returns a list of enum constant names
      * (in lowercase) that start with the provided prefix. The comparison is case-insensitive.
      *
-     * @param prefix     The prefix to match against the enum constant names.
-     * @param enumClass  The enum class to extract the values from.
-     * @param <T>        The type of the enum.
+     * @param prefix    The prefix to match against the enum constant names.
+     * @param enumClass The enum class to extract the values from.
+     * @param <T>       The type of the enum.
      * @return A list of matching enum constant names (in lowercase).
      */
     @NotNull
@@ -34,13 +32,15 @@ public final class CompleteUtility {
         prefix = prefix.toUpperCase();
         ArrayList<String> results = new ArrayList<>();
         int c = 0;
-        for (T el : enumClass.getEnumConstants())
+        for (T el : enumClass.getEnumConstants()) {
             if (el.toString().startsWith(prefix)) {
                 results.add(el.toString().toLowerCase(Locale.ENGLISH));
                 c++;
-                if (c > MAX_COMPLETES)
+                if (c > MAX_COMPLETES) {
                     return results;
+                }
             }
+        }
         return results;
     }
 
@@ -49,10 +49,10 @@ public final class CompleteUtility {
      * This method returns a list of enum constant names (in lowercase) that start with the provided prefix
      * and satisfy the predicate condition. The comparison is case-insensitive.
      *
-     * @param prefix     The prefix to match against the enum constant names.
-     * @param type       The enum class to extract the values from.
-     * @param predicate  A predicate used to filter the enum constants.
-     * @param <T>        The type of the enum.
+     * @param prefix    The prefix to match against the enum constant names.
+     * @param type      The enum class to extract the values from.
+     * @param predicate A predicate used to filter the enum constants.
+     * @param <T>       The type of the enum.
      * @return A list of matching enum constant names (in lowercase) that satisfy the predicate.
      */
     @NotNull
@@ -66,8 +66,9 @@ public final class CompleteUtility {
             if (predicate.test(el) && el.toString().startsWith(prefix)) {
                 results.add(el.toString().toLowerCase(Locale.ENGLISH));
                 c++;
-                if (c > MAX_COMPLETES)
+                if (c > MAX_COMPLETES) {
                     return results;
+                }
             }
         return results;
     }
@@ -90,8 +91,9 @@ public final class CompleteUtility {
             if (value.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
                 results.add(value);
                 c++;
-                if (c > MAX_COMPLETES)
+                if (c > MAX_COMPLETES) {
                     return results;
+                }
             }
         return results;
     }
@@ -114,8 +116,9 @@ public final class CompleteUtility {
             if (value.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
                 results.add(value);
                 c++;
-                if (c > MAX_COMPLETES)
+                if (c > MAX_COMPLETES) {
                     return results;
+                }
             }
         return results;
     }
@@ -133,18 +136,22 @@ public final class CompleteUtility {
      */
     @NotNull
     public static <T> List<String> complete(@NotNull String prefix,
-                                            @NotNull Collection<T> list,
+                                            @NotNull Iterable<T> list,
                                             @NotNull Function<T, String> converter) {
         prefix = prefix.toLowerCase(Locale.ENGLISH);
         ArrayList<String> results = new ArrayList<>();
         int c = 0;
         for (T value : list) {
             String textValue = converter.apply(value);
+            if (textValue == null) { //skip nulls
+                continue;
+            }
             if (textValue.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
                 results.add(textValue);
                 c++;
-                if (c > MAX_COMPLETES)
+                if (c > MAX_COMPLETES) {
                     return results;
+                }
             }
         }
         return results;
@@ -162,8 +169,9 @@ public final class CompleteUtility {
         ArrayList<String> names = new ArrayList<>();
         final String text = prefix.toLowerCase(Locale.ENGLISH);
         Bukkit.getOnlinePlayers().forEach((p) -> {
-            if (p.getName().toLowerCase(Locale.ENGLISH).startsWith(text))
+            if (p.getName().toLowerCase(Locale.ENGLISH).startsWith(text)) {
                 names.add(p.getName());
+            }
         });
         return names;
     }
@@ -172,22 +180,45 @@ public final class CompleteUtility {
      * Completes a prefix based on the aliases in an alias set. This method returns a list of aliases from the
      * provided alias set that start with the prefix. The comparison is case-insensitive.
      *
-     * @param prefix The prefix to match against the aliases in the alias set.
+     * @param prefix  The prefix to match against the aliases in the alias set.
      * @param aliases The alias set containing the aliases to search through.
      * @return A list of matching aliases that start with the prefix.
      */
     @NotNull
     public static List<String> complete(@NotNull String prefix,
-                                        @NotNull IAliasSet<?> aliases) {
+                                        @Nullable IAliasSet<?> aliases) {
+        return complete(prefix,aliases,null);
+    }
+
+    /**
+     * Completes a prefix based on the aliases in an alias set. This method returns a list of aliases from the
+     * provided alias set that start with the prefix. The comparison is case-insensitive.
+     *
+     * @param prefix  The prefix to match against the aliases in the alias set.
+     * @param aliases The alias set containing the aliases to search through.
+     * @return A list of matching aliases that start with the prefix.
+     */
+    @NotNull
+    public static <T> List<String> complete(@NotNull String prefix,
+                                            @Nullable IAliasSet<T> aliases,
+                                            @Nullable Predicate<T> filter) {
+        if (aliases == null) {
+            return Collections.emptyList();
+        }
         ArrayList<String> results = new ArrayList<>();
         prefix = prefix.toLowerCase(Locale.ENGLISH);
         int c = 0;
         for (String alias : aliases.getAliases()) {
-            if (alias.startsWith(prefix)) {
-                results.add(alias);
-                c++;
-                if (c > MAX_COMPLETES)
-                    return results;
+            if (filter != null && !filter.test(aliases.convertAlias(alias))) {
+                continue;
+            }
+            if (!alias.startsWith(prefix)) {
+                continue;
+            }
+            results.add(alias);
+            c++;
+            if (c > MAX_COMPLETES) {
+                return results;
             }
         }
         return results;

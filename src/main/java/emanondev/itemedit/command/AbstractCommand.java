@@ -5,6 +5,7 @@ import emanondev.itemedit.Util;
 import emanondev.itemedit.YMLConfig;
 import emanondev.itemedit.utility.CompleteUtility;
 import emanondev.itemedit.utility.ItemUtils;
+import lombok.Getter;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -16,107 +17,164 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 public abstract class AbstractCommand implements TabExecutor {
 
     private final String PATH;
+    @Getter
     private final String name;
+    @Getter
     private final APlugin plugin;
     private final YMLConfig config;
     private final List<SubCmd> subCmds = new ArrayList<>();
     private final HelpSubCommand helpSubCommand;
 
+    /**
+     * Creates an AbstractCommand with help support disabled.
+     *
+     * @param name   command name (used as label)
+     * @param plugin plugin instance
+     */
     public AbstractCommand(@NotNull String name, @NotNull APlugin plugin) {
         this(name, plugin, false);
     }
 
+    /**
+     * Creates an AbstractCommand with an optional paginated help system.
+     *
+     * @param name         command name (used as label)
+     * @param plugin       plugin instance
+     * @param multiPageHelp whether to enable multi-page help system
+     */
     public AbstractCommand(@NotNull String name, @NotNull APlugin plugin, boolean multiPageHelp) {
         this.name = name.toLowerCase(Locale.ENGLISH);
         this.plugin = plugin;
         this.PATH = getName();
         config = plugin.getConfig("commands.yml");
-        //this.multiPageHelp = multiPageHelp;
         if (multiPageHelp) {
-            //HelpSubCommand sub = ;
-            //registerSubCommand(sub);
             helpSubCommand = new HelpSubCommand(this);
         } else {
             helpSubCommand = null;
         }
     }
 
-    public final @NotNull String getName() {
-        return name;
-    }
-
-    public final @NotNull APlugin getPlugin() {
-        return plugin;
-    }
-
+    /**
+     * Reloads the command's configuration and all registered sub-commands.
+     */
     public void reload() {
         config.reload();
-        for (SubCmd sub : subCmds)
+        for (SubCmd sub : subCmds) {
             sub.reload();
-        if (helpSubCommand != null)
+        }
+        if (helpSubCommand != null) {
             helpSubCommand.reload();
+        }
     }
 
-    public List<SubCmd> getAllowedSubCommands(CommandSender sender) {
+    /**
+     * Returns sub-commands available to a specific sender based on permission.
+     *
+     * @param sender The command sender
+     * @return A list of sub-commands the sender has permission to use
+     */
+    public @NotNull List<SubCmd> getAllowedSubCommands(@NotNull CommandSender sender) {
         List<SubCmd> list = new ArrayList<>();
         subCmds.forEach(sub -> {
-            if (sender.hasPermission(sub.getPermission()))
+            if (sender.hasPermission(sub.getPermission())) {
                 list.add(sub);
+            }
         });
-        if (helpSubCommand != null && !subCmds.isEmpty())
+        if (helpSubCommand != null && !subCmds.isEmpty()) {
             list.add(helpSubCommand);
+        }
         return list;
     }
-
+    /**
+     * Registers a sub-command.
+     *
+     * @param sub the sub-command to register
+     */
     public void registerSubCommand(@NotNull SubCmd sub) {
         subCmds.add(sub);
     }
 
+    /**
+     * Registers a sub-command from a supplier.
+     * Catches and logs exceptions thrown by the supplier.
+     *
+     * @param sub the supplier of a sub-command
+     * @return true if registration was successful
+     */
+    public boolean registerSubCommand(@NotNull Supplier<SubCmd> sub) {
+        try {
+            SubCmd subCommand = sub.get();
+            if (subCommand != null) {
+                subCmds.add(subCommand);
+                return true;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Registers a sub-command conditionally.
+     *
+     * @param sub      the supplier of a sub-command
+     * @param condition if true, the command will be registered
+     * @return true if the command was registered
+     */
+    public boolean registerSubCommand(@NotNull Supplier<SubCmd> sub, boolean condition) {
+        if (!condition) {
+            return false;
+        }
+        return registerSubCommand(sub);
+    }
+
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
         SubCmd subCmd = args.length > 0 ? getSubCmd(args[0], sender) : null;
-        if (!validateRequires(subCmd, sender, label))
-            return true;
-        subCmd.onCommand(sender, label, args);
+        if (validateRequires(subCmd, sender, label)) {
+            subCmd.onCommand(sender, label, args);
+        }
         return true;
     }
 
-    public void sendPermissionLackMessage(@NotNull String permission, CommandSender sender) {
+    public void sendPermissionLackMessage(@NotNull String permission, @NotNull CommandSender sender) {
         Util.sendMessage(sender, getPlugin().getLanguageConfig(sender).loadMessage("lack-permission", "&cYou lack of permission %permission%",
                 sender instanceof Player ? (Player) sender : null, true
                 , "%permission%",
                 permission));
     }
 
-    public void sendPermissionLackGenericMessage(CommandSender sender) {
+    public void sendPermissionLackGenericMessage(@NotNull CommandSender sender) {
         Util.sendMessage(sender, getPlugin().getLanguageConfig(sender).loadMessage("lack-permission-generic",
                 "&cYou don't have permission to use this command",
                 sender instanceof Player ? (Player) sender : null, true
         ));
     }
 
-    public void sendPlayerOnly(CommandSender sender) {
+    public void sendPlayerOnly(@NotNull CommandSender sender) {
         Util.sendMessage(sender, getPlugin().getLanguageConfig(sender).loadMessage("player-only", "&cCommand for Players only",
                 sender instanceof Player ? (Player) sender : null, true
         ));
     }
 
-    public void sendNoItemInHand(CommandSender sender) {
+    public void sendNoItemInHand(@NotNull CommandSender sender) {
         Util.sendMessage(sender, getPlugin().getLanguageConfig(sender).loadMessage("no-item-on-hand", "&cYou need to hold an item in hand",
                 sender instanceof Player ? (Player) sender : null, true
         ));
     }
 
     @Contract("null,_,_-> false")
-    private boolean validateRequires(SubCmd sub, @NotNull CommandSender sender, String alias) {
+    private boolean validateRequires(@Nullable SubCmd sub, @NotNull CommandSender sender, @NotNull String alias) {
         if (sub == null) {
             help(sender, alias);
             return false;
@@ -140,7 +198,7 @@ public abstract class AbstractCommand implements TabExecutor {
         return true;
     }
 
-    private void help(CommandSender sender, String alias) {
+    private void help(@NotNull CommandSender sender, @NotNull String alias) {
         if (helpSubCommand != null) {
             helpSubCommand.help(sender, alias, 1);
             return;
@@ -150,20 +208,22 @@ public abstract class AbstractCommand implements TabExecutor {
         boolean c = false;
         for (SubCmd cmd : subCmds) {
             if (sender.hasPermission(cmd.getPermission())) {
-                if (c)
+                if (c) {
                     help.append("\n");
-                else
+                } else {
                     c = true;
+                }
                 help = cmd.getHelp(help, sender, alias);
             }
         }
-        if (c)
+        if (c) {
             Util.sendMessage(sender, help.create());
-        else
+        } else {
             sendPermissionLackGenericMessage(sender);
+        }
     }
 
-    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command cmd, @NotNull String label, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         List<String> l = new ArrayList<>();
 
         if (args.length == 1) {
@@ -172,27 +232,33 @@ public abstract class AbstractCommand implements TabExecutor {
         }
         if (args.length > 1) {
             SubCmd subCmd = getSubCmd(args[0], sender);
-            if (subCmd != null && sender.hasPermission(subCmd.getPermission()))
+            if (subCmd != null && sender.hasPermission(subCmd.getPermission())) {
                 l = subCmd.onComplete(sender, args);
+            }
         }
         return l;
     }
 
-    public SubCmd getSubCmd(String cmd, CommandSender sender) {
+    public SubCmd getSubCmd(@NotNull String cmd, @NotNull CommandSender sender) {
         for (SubCmd subCmd : subCmds) {
-            if (subCmd.getName().equalsIgnoreCase(cmd))
+            if (subCmd.getName().equalsIgnoreCase(cmd)) {
                 return subCmd;
+            }
         }
-        if (helpSubCommand != null && helpSubCommand.getName().equalsIgnoreCase(cmd) && !getAllowedSubCommands(sender).isEmpty())
+        if (helpSubCommand != null && helpSubCommand.getName().equalsIgnoreCase(cmd) && !getAllowedSubCommands(sender).isEmpty()) {
             return helpSubCommand;
+        }
         return null;
     }
 
-    public void completeCmd(List<String> l, String prefix, CommandSender sender) {
-        final String text = prefix.toLowerCase(Locale.ENGLISH);
+    public void completeCmd(@NotNull List<String> l,
+                            @NotNull String prefix,
+                            @NotNull CommandSender sender) {
+        String text = prefix.toLowerCase(Locale.ENGLISH);
         getAllowedSubCommands(sender).forEach((cmd) -> {
-            if (cmd.getName().startsWith(text))
+            if (cmd.getName().startsWith(text)) {
                 l.add(cmd.getName());
+            }
         });
     }
 
@@ -236,7 +302,7 @@ public abstract class AbstractCommand implements TabExecutor {
         }
 
         @Override
-        public void onCommand(CommandSender sender, String alias, String[] args) {
+        public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
             int page = 1;
             if (args.length > 1) {
                 try {
@@ -381,13 +447,15 @@ public abstract class AbstractCommand implements TabExecutor {
 
 
         @Override
-        public List<String> onComplete(CommandSender sender, String[] args) {
-            if (args.length != 2)
+        public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+            if (args.length != 2) {
                 return Collections.emptyList();
+            }
             ArrayList<String> tabs = new ArrayList<>();
             List<SubCmd> subs = getAllowedSubCommands(sender);
-            for (int i = 0; i < getMaxPageFor(subs.size()); i++)
+            for (int i = 0; i < getMaxPageFor(subs.size()); i++) {
                 tabs.add(String.valueOf(i + 1));
+            }
             for (SubCmd sub : subs) {
                 tabs.add(sub.getName());
             }

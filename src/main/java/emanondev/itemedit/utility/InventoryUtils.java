@@ -5,10 +5,12 @@ import org.bukkit.Location;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.lang.reflect.Method;
@@ -21,6 +23,7 @@ public final class InventoryUtils {
             VersionUtils.hasFoliaAPI() ? new ConcurrentHashMap<>() : new HashMap<>();
     private static final Map<Class<?>, Method> getBottomInventory =
             VersionUtils.hasFoliaAPI() ? new ConcurrentHashMap<>() : new HashMap<>();
+    private static final Set<EquipmentSlot> playerEquipmentSlots = loadPlayerEquipmentSlot();
 
     private InventoryUtils() {
         throw new UnsupportedOperationException();
@@ -37,8 +40,9 @@ public final class InventoryUtils {
      * @return The top Inventory object from the event's InventoryView.
      */
     public static Inventory getTopInventory(@NotNull InventoryEvent event) {
-        if (VersionUtils.isVersionAfter(1, 21))
+        if (VersionUtils.isVersionAfter(1, 21)) {
             return event.getView().getTopInventory();
+        }
         return getTopInventoryP(event.getView());
     }
 
@@ -53,8 +57,9 @@ public final class InventoryUtils {
      * @return The top Inventory object from the player's InventoryView.
      */
     public static Inventory getTopInventory(@NotNull Player player) {
-        if (VersionUtils.isVersionAfter(1, 21))
+        if (VersionUtils.isVersionAfter(1, 21)) {
             return player.getOpenInventory().getTopInventory();
+        }
         return getTopInventoryP(player.getOpenInventory());
     }
 
@@ -67,7 +72,6 @@ public final class InventoryUtils {
         return (Inventory) ReflectionUtils.invokeMethod(view, method);
     }
 
-
     /**
      * Returns the bottom Inventory object from the event's InventoryView.<br><br>
      * This method may use reflections to get the top Inventory object from the
@@ -79,8 +83,9 @@ public final class InventoryUtils {
      * @return The bottom Inventory object from the event's InventoryView.
      */
     public static Inventory getBottomInventory(@NotNull InventoryEvent event) {
-        if (VersionUtils.isVersionAfter(1, 21))
+        if (VersionUtils.isVersionAfter(1, 21)) {
             return event.getView().getBottomInventory();
+        }
         return getBottomInventoryP(event.getView());
     }
 
@@ -93,35 +98,32 @@ public final class InventoryUtils {
         return (Inventory) ReflectionUtils.invokeMethod(view, method);
     }
 
-
     /**
      * Update InventoryView for player.<br><br>
      * In API versions 1.19.3 and earlier, there is no implicit consistency for inventory and
      * changes, so it has to be done manually (also Purpur has similar issue in later versions too).<br>
-     * In API versions 1.19.4 and later, there is implicit consistency for inventory and changes.
+     * In API versions 1.19.4 and later, there is implicit consistency for inventory and changes.<br>
+     * Also, ViaBackwards and ViaVersion may cause desyncronization of inventory
      *
      * @param player The player which inventory view should be updated
      */
     @SuppressWarnings("UnstableApiUsage")
     public static void updateView(@NotNull Player player) {
-        if (VersionUtils.isVersionUpTo(1, 19, 4) || VersionUtils.hasPurpurAPI()) {
-            SchedulerUtils.run(ItemEdit.get(), player, player::updateInventory);
-        }
+        SchedulerUtils.run(ItemEdit.get(), player, player::updateInventory);
     }
 
     /**
      * Update InventoryView for player.<br><br>
      * In API versions 1.19.3 and earlier, there is no implicit consistency for inventory and
      * changes, so it has to be done manually (also Purpur has similar issue in later versions too).<br>
-     * In API versions 1.19.4 and later, there is implicit consistency for inventory and changes.
+     * In API versions 1.19.4 and later, there is implicit consistency for inventory and changes.<br>
+     * Also, ViaBackwards and ViaVersion may cause desyncronization of inventory
      *
      * @param player The player which inventory view should be updated
      */
     @SuppressWarnings("UnstableApiUsage")
     public static void updateViewDelayed(@NotNull Player player) {
-        if (VersionUtils.isVersionUpTo(1, 19, 4) || VersionUtils.hasPurpurAPI()) {
-            SchedulerUtils.runLater(ItemEdit.get(), player, 1L, player::updateInventory);
-        }
+        SchedulerUtils.runLater(ItemEdit.get(), player, 1L, player::updateInventory);
     }
 
     /**
@@ -131,34 +133,39 @@ public final class InventoryUtils {
      * @param mode   how to handle special cases
      * @return the amount given (or given + dropped)
      */
-    public static int giveAmount(@NotNull final HumanEntity player,
-                                 @NotNull final ItemStack item,
+    public static int giveAmount(@NotNull HumanEntity player,
+                                 @NotNull ItemStack item,
                                  @Range(from = 0, to = Integer.MAX_VALUE) int amount,
-                                 @NotNull final InventoryUtils.ExcessMode mode) {
+                                 @NotNull InventoryUtils.ExcessMode mode) {
         final ItemStack itemClone = item.clone();
-        if (amount == 0)
+        if (amount == 0) {
             return 0;
+        }
         int remains = amount;
         while (remains > 0) {
             itemClone.setAmount(Math.min(itemClone.getMaxStackSize(), remains));
             HashMap<Integer, ItemStack> map = player.getInventory().addItem(itemClone);
             remains = remains - Math.min(itemClone.getMaxStackSize(), remains);
-            if (map.isEmpty())
+            if (map.isEmpty()) {
                 continue;
+            }
             remains = remains + map.get(0).getAmount();
             break;
         }
 
-        if (player instanceof Player)
+        if (player instanceof Player) {
             updateViewDelayed((Player) player);
+        }
 
-        if (remains == 0)
+        if (remains == 0) {
             return amount;
+        }
 
         switch (mode) {
-            case DELETE_EXCESS:
+            case DELETE_EXCESS: {
                 return amount - remains;
-            case DROP_EXCESS:
+            }
+            case DROP_EXCESS: {
                 while (remains > 0) {
                     int drop = Math.min(remains, 64);
                     itemClone.setAmount(drop);
@@ -169,11 +176,14 @@ public final class InventoryUtils {
                     remains -= drop;
                 }
                 return amount;
-            case CANCEL:
+            }
+            case CANCEL: {
                 removeAmount(player, itemClone, amount - remains, LackMode.REMOVE_MAX_POSSIBLE);
                 return 0;
-            default:
+            }
+            default: {
                 throw new UnsupportedOperationException();
+            }
         }
     }
 
@@ -184,24 +194,26 @@ public final class InventoryUtils {
      * @param mode   how to handle special cases
      * @return the removed amount
      */
-    public static int removeAmount(@NotNull final HumanEntity player,
-                                   @NotNull final ItemStack item,
-                                   @Range(from = 0, to = Integer.MAX_VALUE) final int amount,
-                                   @NotNull final InventoryUtils.LackMode mode) {
+    public static int removeAmount(@NotNull HumanEntity player,
+                                   @NotNull ItemStack item,
+                                   @Range(from = 0, to = Integer.MAX_VALUE) int amount,
+                                   @NotNull InventoryUtils.LackMode mode) {
         final ItemStack itemClone = item.clone();
-        if (amount == 0)
+        if (amount == 0) {
             return 0;
-        if (player instanceof Player)
+        }
+        if (player instanceof Player) {
             updateViewDelayed((Player) player);
+        }
 
         switch (mode) {
             case REMOVE_MAX_POSSIBLE: {
                 itemClone.setAmount(amount);
                 HashMap<Integer, ItemStack> map = player.getInventory().removeItem(itemClone);
 
-                if (map.isEmpty())
+                if (map.isEmpty()) {
                     return amount;
-                else {
+                } else {
                     int left = map.get(0).getAmount();
                     if (VersionUtils.isVersionAfter(1, 9)) {
                         ItemStack[] extras = player.getInventory().getExtraContents();
@@ -210,9 +222,9 @@ public final class InventoryUtils {
                             if (extra != null && itemClone.isSimilar(extra)) {
                                 int toRemove = Math.min(left, extra.getAmount());
                                 left -= toRemove;
-                                if (toRemove == extra.getAmount())
+                                if (toRemove == extra.getAmount()) {
                                     extras[i] = null;
-                                else {
+                                } else {
                                     extra.setAmount(extra.getAmount() - toRemove);
                                     extras[i] = extra;
                                 }
@@ -220,7 +232,6 @@ public final class InventoryUtils {
                         }
                         player.getInventory().setExtraContents(extras);
                     }
-
                     return amount - left;
                 }
             }
@@ -229,17 +240,63 @@ public final class InventoryUtils {
                     itemClone.setAmount(amount);
                     HashMap<Integer, ItemStack> map = player.getInventory().removeItem(itemClone);
 
-                    if (map.isEmpty())
+                    if (map.isEmpty()) {
                         return amount;
-                    else
-                        return amount - map.get(0).getAmount();
+                    }
+                    return amount - map.get(0).getAmount();
                 }
-
                 return 0;
             }
-            default:
+            default: {
                 throw new UnsupportedOperationException();
+            }
         }
+    }
+
+    private static Set<EquipmentSlot> loadPlayerEquipmentSlot() {
+        EnumSet<EquipmentSlot> slots = EnumSet.noneOf(EquipmentSlot.class);
+        slots.add(EquipmentSlot.HEAD);
+        slots.add(EquipmentSlot.CHEST);
+        slots.add(EquipmentSlot.LEGS);
+        slots.add(EquipmentSlot.FEET);
+        slots.add(EquipmentSlot.HAND);
+        try {
+            slots.add(EquipmentSlot.valueOf("OFF_HAND"));
+        } catch (Throwable ignored) {
+            //1.8
+        }
+        return Collections.unmodifiableSet(slots);
+    }
+
+    public static @NotNull Set<EquipmentSlot> getPlayerEquipmentSlots() {
+        return playerEquipmentSlots;
+    }
+
+    public static @Nullable ItemStack getItem(@NotNull Player player, @NotNull EquipmentSlot slot) {
+        try {
+            return player.getInventory().getItem(slot);
+        } catch (Throwable ignored) {
+        }
+        EntityEquipment equip = player.getEquipment();
+        if (equip != null) {
+            switch (slot.name()) {
+                case "HAND":
+                    return equip.getItemInHand();
+                case "LEGS":
+                    return equip.getLeggings();
+                case "CHEST":
+                    return equip.getChestplate();
+                case "HEAD":
+                    return equip.getHelmet();
+                case "FEET":
+                    return equip.getBoots();
+                case "OFF_HAND":
+                    return equip.getItemInOffHand();
+                default:
+                    throw new UnsupportedOperationException();
+            }
+        }
+        return null;
     }
 
     public enum ExcessMode {
@@ -268,24 +325,4 @@ public final class InventoryUtils {
         CANCEL,
     }
 
-    private static final EnumSet<EquipmentSlot> playerEquipmentSlots = loadPlayerEquipmentSlot();
-
-    private static EnumSet<EquipmentSlot> loadPlayerEquipmentSlot() {
-        EnumSet<EquipmentSlot> slots = EnumSet.noneOf(EquipmentSlot.class);
-        slots.add(EquipmentSlot.HEAD);
-        slots.add(EquipmentSlot.CHEST);
-        slots.add(EquipmentSlot.LEGS);
-        slots.add(EquipmentSlot.FEET);
-        slots.add(EquipmentSlot.HAND);
-        try {
-            slots.add(EquipmentSlot.valueOf("OFF_HAND"));
-        } catch (Throwable ignored) {
-            //1.8
-        }
-        return slots;
-    }
-
-    public static Set<EquipmentSlot> getPlayerEquipmentSlots() {
-        return Collections.unmodifiableSet(playerEquipmentSlots);
-    }
 }

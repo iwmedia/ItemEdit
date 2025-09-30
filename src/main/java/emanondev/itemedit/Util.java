@@ -1,6 +1,5 @@
 package emanondev.itemedit;
 
-import emanondev.itemedit.aliases.IAliasSet;
 import emanondev.itemedit.compability.Hooks;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
@@ -17,149 +16,38 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
-public class Util {
-    @Deprecated
-    public static final int GAME_MAIN_VERSION = Integer.parseInt(
-            Bukkit.getBukkitVersion().split("-")[0].split("\\.")[0]);
-    @Deprecated
-    public static final int GAME_VERSION = Integer.parseInt(
-            Bukkit.getBukkitVersion().split("-")[0].split("\\.")[1]);
-    @Deprecated
-    public static final int GAME_SUB_VERSION = Bukkit.getBukkitVersion().split("-")[0].split("\\.").length < 3 ? 0 : Integer.parseInt(
-            Bukkit.getBukkitVersion().split("-")[0].split("\\.")[2]);
-    private static final int MAX_COMPLETES = 200;
-    private static final boolean hasPaper = initPaper();
-    private static final boolean hasFolia = initFolia();
-    private static final boolean hasPurpur = initPurpur();
+public final class Util {
 
-    @Deprecated
-    public static <T extends Enum<T>> @NotNull List<String> complete(String prefix, @NotNull Class<T> enumClass) {
-        prefix = prefix.toUpperCase();
-        ArrayList<String> results = new ArrayList<>();
-        int c = 0;
-        for (T el : enumClass.getEnumConstants())
-            if (el.toString().startsWith(prefix)) {
-                results.add(el.toString().toLowerCase(Locale.ENGLISH));
-                c++;
-                if (c > MAX_COMPLETES)
-                    return results;
-            }
-        return results;
-    }
-
-    @Deprecated
-    public static @NotNull <T extends Enum<T>> List<String> complete(String prefix, @NotNull Class<T> type,
-                                                                     @NotNull Predicate<T> predicate) {
-        prefix = prefix.toUpperCase();
-        ArrayList<String> results = new ArrayList<>();
-        int c = 0;
-        for (T el : type.getEnumConstants())
-            if (predicate.test(el) && el.toString().startsWith(prefix)) {
-                results.add(el.toString().toLowerCase(Locale.ENGLISH));
-                c++;
-                if (c > MAX_COMPLETES)
-                    return results;
-            }
-        return results;
-    }
-
-    @Deprecated
-    public static @NotNull List<String> complete(String prefix, String... list) {
-        prefix = prefix.toLowerCase(Locale.ENGLISH);
-        ArrayList<String> results = new ArrayList<>();
-        int c = 0;
-        for (String value : list)
-            if (value.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
-                results.add(value);
-                c++;
-                if (c > MAX_COMPLETES)
-                    return results;
-            }
-        return results;
-    }
-
-    @Deprecated
-    public static @NotNull List<String> complete(String prefix, Collection<String> list) {
-        prefix = prefix.toLowerCase(Locale.ENGLISH);
-        ArrayList<String> results = new ArrayList<>();
-        int c = 0;
-        for (String value : list)
-            if (value.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
-                results.add(value);
-                c++;
-                if (c > MAX_COMPLETES)
-                    return results;
-            }
-        return results;
-    }
-
-    @Deprecated
-    public static @NotNull <T> List<String> complete(String prefix, Collection<T> list, Function<T, String> converter) {
-        prefix = prefix.toLowerCase(Locale.ENGLISH);
-        ArrayList<String> results = new ArrayList<>();
-        int c = 0;
-        for (T value : list) {
-            String textValue = converter.apply(value);
-            if (textValue.toLowerCase(Locale.ENGLISH).startsWith(prefix)) {
-                results.add(textValue);
-                c++;
-                if (c > MAX_COMPLETES)
-                    return results;
-            }
-        }
-        return results;
-    }
-
-    @Deprecated
-    public static @NotNull List<String> completePlayers(String prefix) {
-        ArrayList<String> names = new ArrayList<>();
-        final String text = prefix.toLowerCase(Locale.ENGLISH);
-        Bukkit.getOnlinePlayers().forEach((p) -> {
-            if (p.getName().toLowerCase(Locale.ENGLISH).startsWith(text))
-                names.add(p.getName());
-        });
-        return names;
-    }
-
-    @Deprecated
-    public static @NotNull List<String> complete(String prefix, IAliasSet<?> aliases) {
-        ArrayList<String> results = new ArrayList<>();
-        prefix = prefix.toLowerCase(Locale.ENGLISH);
-        int c = 0;
-        for (String alias : aliases.getAliases()) {
-            if (alias.startsWith(prefix)) {
-                results.add(alias);
-                c++;
-                if (c > MAX_COMPLETES)
-                    return results;
-            }
-        }
-        return results;
+    private Util() {
+        throw new UnsupportedOperationException();
     }
 
     public static void sendMessage(@NotNull CommandSender sender, String message) {
-        if (message == null || message.isEmpty())
+        if (message == null || message.isEmpty()) {
             return;
+        }
         sender.sendMessage(message);
     }
 
     public static void sendMessage(@NotNull CommandSender sender, BaseComponent... message) {
-        if (sender instanceof Player)
+        if (sender instanceof Player) {
             ((Player) sender).spigot().sendMessage(message);
-        else
+        } else {
             sender.sendMessage(BaseComponent.toPlainText(message));
+        }
     }
 
     public static void logToFile(String message) {
         try {
             File dataFolder = ItemEdit.get().getDataFolder();
-            if (!dataFolder.exists())
+            if (!dataFolder.exists()) {
                 dataFolder.mkdir();
+            }
             Date date = new Date();
             File saveTo = new File(ItemEdit.get().getDataFolder(),
                     "logs" + File.separatorChar
@@ -169,8 +57,9 @@ public class Util {
             if (!saveTo.getParentFile().exists()) { // Create parent folders if they don't exist
                 saveTo.getParentFile().mkdirs();
             }
-            if (!saveTo.exists())
+            if (!saveTo.exists()) {
                 saveTo.createNewFile();
+            }
 
             FileWriter fw = new FileWriter(saveTo, true);
             PrintWriter pw = new PrintWriter(fw);
@@ -249,12 +138,14 @@ public class Util {
     }
 
     public static boolean isAllowedRenameItem(CommandSender sender, Material type) {
-        if (sender.hasPermission("itemedit.bypass.rename_type_restriction"))
+        if (sender.hasPermission("itemedit.bypass.rename_type_restriction")) {
             return true;
+        }
 
         List<String> values = ItemEdit.get().getConfig().getStringList("blocked.type-blocked-rename");
-        if (values.isEmpty())
+        if (values.isEmpty()) {
             return true;
+        }
         String id = type.name();
         for (String name : values)
             if (id.equalsIgnoreCase(name)) {
@@ -398,86 +289,10 @@ public class Util {
         }
     }
 
-    @Deprecated
-    public static boolean isAirOrNull(ItemStack item) {
-        return item == null || item.getType() == Material.AIR;
-    }
-
-    /**
-     * Inclusive
-     * isVersionUpTo(1,9) on 1.9.0 is true
-     */
-    @Deprecated
-    public static boolean isVersionUpTo(int mainVersion, int version) {
-        return isVersionUpTo(mainVersion, version, 99);
-    }
-
-    /**
-     * Inclusive
-     * isVersionUpTo(1,9,4) on 1.9.4 is true
-     */
-    @Deprecated
-    public static boolean isVersionUpTo(int mainVersion, int version, int subVersion) {
-        if (GAME_MAIN_VERSION > mainVersion)
-            return false;
-        if (GAME_MAIN_VERSION < mainVersion)
-            return true;
-        if (GAME_VERSION > version)
-            return false;
-        if (GAME_VERSION < version)
-            return true;
-        return GAME_SUB_VERSION <= subVersion;
-    }
-
-    /**
-     * Inclusive
-     * isVersionAfter(1,9) on 1.9.0 is true
-     */
-    @Deprecated
-    public static boolean isVersionAfter(int mainVersion, int version) {
-        return isVersionAfter(mainVersion, version, 0);
-    }
-
-    /**
-     * Inclusive
-     * isVersionAfter(1,9,4) on 1.9.4 is true
-     */
-    @Deprecated
-    public static boolean isVersionAfter(int mainVersion, int version, int subVersion) {
-        if (GAME_MAIN_VERSION < mainVersion)
-            return false;
-        if (GAME_MAIN_VERSION > mainVersion)
-            return true;
-        if (GAME_VERSION < version)
-            return false;
-        if (GAME_VERSION > version)
-            return true;
-        return GAME_SUB_VERSION >= subVersion;
-    }
-
-    /**
-     * Inclusive
-     */
-    @Deprecated
-    public static boolean isVersionInRange(int mainVersionMin, int versionMin,
-                                           int mainVersionMax, int versionMax) {
-        return isVersionInRange(mainVersionMin, versionMin, 0,
-                mainVersionMax, versionMax, 99);
-    }
-
-    /**
-     * Inclusive
-     */
-    @Deprecated
-    public static boolean isVersionInRange(int mainVersionMin, int versionMin, int subVersionMin,
-                                           int mainVersionMax, int versionMax, int subVersionMax) {
-        return isVersionAfter(mainVersionMin, versionMin, subVersionMin)
-                && isVersionUpTo(mainVersionMax, versionMax, subVersionMax);
-    }
-
     public static boolean isAllowedChangeLore(CommandSender sender, Material type) {
-        if (sender.hasPermission("itemedit.bypass.lore_type_restriction"))
+        if (sender.hasPermission("itemedit.bypass.lore_type_restriction")) {
             return true;
+        }
 
         List<String> values = ItemEdit.get().getConfig().getStringList("blocked.type-blocked-lore");
         if (values.isEmpty())
@@ -490,48 +305,6 @@ public class Util {
                 return false;
             }
         return true;
-    }
-
-    private static boolean initPaper() {
-        try {
-            Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData");
-            return true;
-        } catch (NoClassDefFoundError | ClassNotFoundException ex) {
-            return false;
-        }
-    }
-
-    @Deprecated
-    public static boolean hasPaperAPI() {
-        return hasPaper;
-    }
-
-    private static boolean initPurpur() {
-        try {
-            Class.forName("org.purpurmc.purpur.event.PlayerAFKEvent");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    private static boolean initFolia() {
-        try {
-            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    @Deprecated
-    public static boolean hasPurpurAPI() {
-        return hasPurpur;
-    }
-
-    @Deprecated
-    public static boolean hasFoliaAPI() {
-        return hasFolia;
     }
 
     public static boolean hasMiniMessageAPI() {

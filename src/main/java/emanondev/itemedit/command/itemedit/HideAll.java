@@ -11,6 +11,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,12 +23,13 @@ public class HideAll extends SubCmd {
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
         ItemStack item = this.getItemInHand(p);
         try {
-            if (args.length != 1)
+            if (args.length != 1) {
                 throw new IllegalArgumentException("Wrong param number");
+            }
             ItemMeta itemMeta = ItemUtils.getMeta(item);
             handleFlagChange(item, itemMeta);
             itemMeta.addItemFlags(ItemFlag.values());
@@ -53,7 +55,7 @@ public class HideAll extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
         return Collections.emptyList();
     }
 

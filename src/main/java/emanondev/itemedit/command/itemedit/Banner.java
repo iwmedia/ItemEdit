@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,12 +25,12 @@ public class Banner extends SubCmd {
 
     private static final String[] subCommands = new String[]{"add", "set", "remove", "color"};
 
-    public Banner(ItemEditCommand cmd) {
+    public Banner(@NotNull ItemEditCommand cmd) {
         super("banner", cmd, true, true);
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
         ItemStack item = this.getItemInHand(p);
         if (!(item.getItemMeta() instanceof BannerMeta)) {
@@ -60,7 +61,7 @@ public class Banner extends SubCmd {
     }
 
     // itemedit banner color id color
-    private void colorPattern(Player p, ItemStack item, String alias, String[] args) {
+    private void colorPattern(@NotNull Player p, @NotNull ItemStack item, @NotNull String alias, String[] args) {
         try {
             BannerMeta meta = (BannerMeta) ItemUtils.getMeta(item);
             int id = Integer.parseInt(args[2]) - 1;
@@ -80,7 +81,7 @@ public class Banner extends SubCmd {
 
     }
 
-    private void removePattern(Player p, ItemStack item, String alias, String[] args) {
+    private void removePattern(@NotNull Player p, @NotNull ItemStack item, @NotNull String alias, String[] args) {
         try {
             BannerMeta meta = (BannerMeta) ItemUtils.getMeta(item);
             int id = Integer.parseInt(args[2]) - 1;
@@ -94,14 +95,18 @@ public class Banner extends SubCmd {
         }
     }
 
-    private void setPattern(Player p, ItemStack item, String alias, String[] args) {
+    private void setPattern(@NotNull Player p, @NotNull ItemStack item, @NotNull String alias, String[] args) {
         try {
             BannerMeta meta = (BannerMeta) ItemUtils.getMeta(item);
             PatternType type = Aliases.PATTERN_TYPE.convertAlias(args[2]);
             DyeColor color = Aliases.COLOR.convertAlias(args[3]);
             if (type == null || color == null) {
-                if (type == null) onWrongAlias("wrong-pattern", p, Aliases.PATTERN_TYPE);
-                if (color == null) onWrongAlias("wrong-color", p, Aliases.COLOR);
+                if (type == null) {
+                    onWrongAlias("wrong-pattern", p, Aliases.PATTERN_TYPE);
+                }
+                if (color == null) {
+                    onWrongAlias("wrong-color", p, Aliases.COLOR);
+                }
                 sendFailFeedbackForSub(p, alias, "set");
                 return;
             }
@@ -114,14 +119,18 @@ public class Banner extends SubCmd {
         }
     }
 
-    private void addPattern(Player p, ItemStack item, String alias, String[] args) {
+    private void addPattern(@NotNull Player p, @NotNull ItemStack item, @NotNull String alias, String[] args) {
         try {
             BannerMeta meta = (BannerMeta) ItemUtils.getMeta(item);
             PatternType type = Aliases.PATTERN_TYPE.convertAlias(args[2]);
             DyeColor color = Aliases.COLOR.convertAlias(args[3]);
             if (type == null || color == null) {
-                if (type == null) onWrongAlias("wrong-pattern", p, Aliases.PATTERN_TYPE);
-                if (color == null) onWrongAlias("wrong-color", p, Aliases.COLOR);
+                if (type == null) {
+                    onWrongAlias("wrong-pattern", p, Aliases.PATTERN_TYPE);
+                }
+                if (color == null) {
+                    onWrongAlias("wrong-color", p, Aliases.COLOR);
+                }
                 sendFailFeedbackForSub(p, alias, "add");
                 return;
             }
@@ -134,18 +143,25 @@ public class Banner extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (args.length == 2) {
-            return CompleteUtility.complete(args[1], subCommands);
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        switch (args.length) {
+            case 2:
+                return CompleteUtility.complete(args[1], subCommands);
+            case 3:
+                if (args[1].equalsIgnoreCase("add")
+                        || args[1].equalsIgnoreCase("set")) {
+                    return CompleteUtility.complete(args[2], Aliases.PATTERN_TYPE);
+                }
+                return Collections.emptyList();
+            case 4:
+                if (args[1].equalsIgnoreCase("color")
+                        || args[1].equalsIgnoreCase("add")
+                        || args[1].equalsIgnoreCase("set")) {
+                    return CompleteUtility.complete(args[3], Aliases.COLOR);
+                }
+            default:
+                return Collections.emptyList();
         }
-        if (args.length == 3 && (args[1].equalsIgnoreCase("add")
-                || args[1].equalsIgnoreCase("set")))
-            return CompleteUtility.complete(args[2], Aliases.PATTERN_TYPE);
-        if (args.length == 4 && (args[1].equalsIgnoreCase("color")
-                || args[1].equalsIgnoreCase("add")
-                || args[1].equalsIgnoreCase("set")))
-            return CompleteUtility.complete(args[3], Aliases.COLOR);
-        return Collections.emptyList();
     }
 
 }

@@ -7,6 +7,7 @@ import emanondev.itemedit.YMLConfig;
 import emanondev.itemedit.aliases.IAliasSet;
 import emanondev.itemedit.utility.InventoryUtils;
 import emanondev.itemedit.utility.ItemUtils;
+import lombok.Getter;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -24,21 +25,24 @@ import java.util.Locale;
 public abstract class SubCmd {
 
     public final String ID;
+    @Getter
     private final String permission;
     private final String PATH;
     private final YMLConfig config;
     private final String commandName;
+    @Getter
     private final boolean playerOnly;
     private final boolean checkNonNullItem;
-    private final AbstractCommand cmd;
-    private String name;
+    private final AbstractCommand command;
+    @Getter
+    private @NotNull String name;
 
-    public SubCmd(@NotNull String id, @NotNull AbstractCommand cmd, boolean playerOnly, boolean checkNonNullItem) {
+    public SubCmd(@NotNull String id, @NotNull AbstractCommand command, boolean playerOnly, boolean checkNonNullItem) {
         if (id.isEmpty() || id.contains(" "))
             throw new IllegalArgumentException();
         this.ID = id.toLowerCase(Locale.ENGLISH);
-        this.cmd = cmd;
-        this.commandName = cmd.getName();
+        this.command = command;
+        this.commandName = command.getName();
         this.playerOnly = playerOnly;
         this.checkNonNullItem = checkNonNullItem;
         this.PATH = getCommand().getName() + "." + this.ID + ".";
@@ -48,57 +52,37 @@ public abstract class SubCmd {
                 + this.commandName + "." + this.ID;
     }
 
-    public AbstractCommand getCommand() {
-        return cmd;
+    public @NotNull AbstractCommand getCommand() {
+        return command;
     }
 
-    public APlugin getPlugin() {
-        return cmd.getPlugin();
-    }
-
-    public boolean isPlayerOnly() {
-        return this.playerOnly;
+    public @NotNull APlugin getPlugin() {
+        return command.getPlugin();
     }
 
     public boolean checkNonNullItem() {
         return this.checkNonNullItem;
     }
 
-    protected ItemStack getItemInHand(Player p) {
+    protected @NotNull ItemStack getItemInHand(@NotNull Player p) {
         return ItemUtils.getHandItem(p);
     }
 
     private void load() {
         name = this.getConfigString("name").toLowerCase(Locale.ENGLISH);
-        if (name.isEmpty() || name.contains(" "))
+        if (name.isEmpty() || name.contains(" ")) {
             name = ID;
+        }
     }
 
     public void reload() {
         load();
     }
 
-    /**
-     * @see #craftFailFeedback(String, String, List)
-     */
-    @Deprecated
-    protected BaseComponent[] craftFailFeedback(String params, List<String> desc) {
-        if (params == null)
-            params = "";
-        ComponentBuilder fail = new ComponentBuilder(
-                ChatColor.RED + "/" + commandName + " " + this.name + " " + params)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
-                        "/" + commandName + " " + this.name + " " + params));
-        if (desc != null && !desc.isEmpty()) {
-            fail.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                    new ComponentBuilder(String.join("\n", desc)).create()));
-        }
-        return fail.create();
-    }
-
     protected BaseComponent[] craftFailFeedback(String alias, String params, List<String> desc) {
-        if (params == null)
+        if (params == null) {
             params = "";
+        }
         ComponentBuilder fail = new ComponentBuilder(ChatColor.RED + "/" + alias + " " + this.name + " " + params)
                 .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
                         "/" + alias + " " + this.name + " " + params));
@@ -107,6 +91,19 @@ public abstract class SubCmd {
                     new ComponentBuilder(String.join("\n", desc)).create()));
         }
         return fail.create();
+    }
+
+    protected void sendFeedbackForSub(CommandSender target,
+                                      @NotNull String subSubCommand,
+                                      String... holders) {
+        sendCustomFeedbackForSub(target, subSubCommand, "feedback", holders);
+    }
+
+    protected void sendCustomFeedbackForSub(CommandSender target,
+                                      @NotNull String subSubCommand,
+                                      @NotNull String feedbackPath,
+                                      String... holders) {
+        Util.sendMessage(target, this.getLanguageString(subSubCommand + "." + feedbackPath, null, target, holders));
     }
 
     protected void sendFailFeedbackForSub(CommandSender target, String alias, String subSubCommand) {
@@ -118,8 +115,9 @@ public abstract class SubCmd {
 
     protected <T> void onWrongAlias(String pathMessage, CommandSender sender, IAliasSet<T> set, String... holders) {
         String msg = getLanguageString(pathMessage, null, sender, holders);
-        if (msg == null || msg.isEmpty())
+        if (msg == null || msg.isEmpty()) {
             return;
+        }
         YMLConfig language = ItemEdit.get().getLanguageConfig(sender);
         StringBuilder hover = new StringBuilder(language
                 .getMessage("itemedit.listaliases.error-pre-hover", "")).append("\n");
@@ -136,8 +134,9 @@ public abstract class SubCmd {
             if (counter > 30) {
                 counter = 0;
                 hover.append("\n");
-            } else
+            } else {
                 hover.append(" ");
+            }
         }
         Util.sendMessage(sender, new ComponentBuilder(msg).event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
                         "/" + ItemEditCommand.get().getName() + " "
@@ -180,16 +179,8 @@ public abstract class SubCmd {
         return config.loadMultiMessage(this.PATH + path, new ArrayList<>(), null, true, holders);
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public String getPermission() {
-        return this.permission;
-    }
-
     @SuppressWarnings("deprecation")
-    public ComponentBuilder getHelp(ComponentBuilder base, CommandSender sender, String alias) {
+    public @NotNull ComponentBuilder getHelp(@NotNull ComponentBuilder base, @NotNull CommandSender sender, @NotNull String alias) {
         String help = ChatColor.DARK_GREEN + "/" + alias + " " + ChatColor.GREEN + this.name + " ";
         base.append(help + getLanguageString("params", "", sender).replace(ChatColor.RESET.toString(),
                         ChatColor.GREEN.toString()))
@@ -199,7 +190,7 @@ public abstract class SubCmd {
         return base;
     }
 
-    public void onFail(CommandSender target, String alias) {
+    public void onFail(@NotNull CommandSender target, @NotNull String alias) {
         String params = getLanguageString("params", "", target);
 
         Util.sendMessage(target, new ComponentBuilder(
@@ -212,15 +203,15 @@ public abstract class SubCmd {
                 .create());
     }
 
-    protected String getDescription(CommandSender target) {
+    protected String getDescription(@NotNull CommandSender target) {
         return String.join("\n", getLanguageStringList("description", null, target));
     }
 
-    abstract public void onCommand(CommandSender sender, String alias, String[] args);
+    abstract public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args);
 
-    abstract public List<String> onComplete(CommandSender sender, String[] args);
+    abstract public List<String> onComplete(@NotNull CommandSender sender, String[] args);
 
-    protected void updateView(Player player) {
+    protected void updateView(@NotNull Player player) {
         InventoryUtils.updateView(player);
     }
 

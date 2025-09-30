@@ -11,6 +11,7 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.ComponentBuilder.FormatRetention;
 import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,10 +27,11 @@ public class ListAliases extends SubCmd {
     // ie listaliases [type]
     @SuppressWarnings({"deprecation", "unchecked", "rawtypes"})
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         try {
-            if ((args.length != 1) && (args.length != 2))
+            if ((args.length != 1) && (args.length != 2)) {
                 throw new IllegalArgumentException("Wrong param number");
+            }
             if (args.length == 1) {
                 String prefix = getLanguageString("prefix_line", null, sender);
                 String postfix = getLanguageString("postfix_line", null, sender);
@@ -37,10 +39,11 @@ public class ListAliases extends SubCmd {
                 String colorTwo = getLanguageString("second_color", null, sender);
                 String hover = getLanguageString("hover_type", null, sender);
                 ComponentBuilder comp;
-                if (prefix != null && !prefix.isEmpty())
+                if (prefix != null && !prefix.isEmpty()) {
                     comp = new ComponentBuilder(prefix + "\n");
-                else
+                } else {
                     comp = new ComponentBuilder("");
+                }
                 boolean counter = true;
                 List<String> values = new ArrayList<>(Aliases.getTypes().keySet());
                 Collections.sort(values);
@@ -52,8 +55,9 @@ public class ListAliases extends SubCmd {
                             .append(" ");
                     counter = !counter;
                 }
-                if (postfix != null && !postfix.isEmpty())
+                if (postfix != null && !postfix.isEmpty()) {
                     comp.retain(FormatRetention.NONE).append("\n" + postfix);
+                }
                 Util.sendMessage(sender, comp.create());
 
             } else {
@@ -69,10 +73,11 @@ public class ListAliases extends SubCmd {
                 String colorTwo = getLanguageString("second_color", null, sender);
                 String hover = getLanguageString("hover_info", null, sender, "%default%", "%default%");
                 ComponentBuilder comp;
-                if (prefix != null && !prefix.isEmpty())
+                if (prefix != null && !prefix.isEmpty()) {
                     comp = new ComponentBuilder(prefix + "\n");
-                else
+                } else {
                     comp = new ComponentBuilder("");
+                }
                 boolean counter = true;
                 for (String aliasS : (List<String>) set.getAliases()) {
                     comp.retain(FormatRetention.NONE).append((counter ? colorOne : colorTwo) + aliasS)
@@ -82,8 +87,9 @@ public class ListAliases extends SubCmd {
                             .append(" ");
                     counter = !counter;
                 }
-                if (postfix != null && !postfix.isEmpty())
+                if (postfix != null && !postfix.isEmpty()) {
                     comp.retain(FormatRetention.NONE).append("\n" + postfix);
+                }
                 Util.sendMessage(sender, comp.create());
             }
         } catch (Exception e) {
@@ -92,9 +98,10 @@ public class ListAliases extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (args.length == 2)
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        if (args.length == 2) {
             return CompleteUtility.complete(args[1], Aliases.getTypes().keySet());
+        }
         return Collections.emptyList();
     }
 

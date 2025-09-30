@@ -27,8 +27,7 @@ public final class SchedulerUtils {
      * @param plugin the plugin instance requesting the task.
      * @param task   the task to run asynchronously.
      */
-    public static void runAsync(@NotNull Plugin plugin,
-                                @NotNull Runnable task) {
+    public static void runAsync(@NotNull Plugin plugin, @NotNull Runnable task) {
         if (VersionUtils.hasFoliaAPI()) {
             foliaSchedulerInvoker(plugin.getServer(), "getAsyncScheduler", task,
                     (scheduler, taskConsumer) ->
@@ -46,8 +45,7 @@ public final class SchedulerUtils {
      * @param plugin the plugin instance requesting the task.
      * @param task   the task to run synchronously.
      */
-    public static void run(@NotNull Plugin plugin,
-                           @NotNull Runnable task) {
+    public static void run(@NotNull Plugin plugin, @NotNull Runnable task) {
         if (VersionUtils.hasFoliaAPI()) {
             foliaSchedulerInvoker(plugin.getServer(), "getAsyncScheduler", task,
                     (scheduler, taskConsumer) ->
@@ -88,9 +86,7 @@ public final class SchedulerUtils {
      * @param location the location associated with the task.
      * @param task     the task to run asynchronously.
      */
-    public static void runAsync(@NotNull Plugin plugin,
-                                @NotNull Location location,
-                                @NotNull Runnable task) {
+    public static void runAsync(@NotNull Plugin plugin, @NotNull Location location, @NotNull Runnable task) {
         if (VersionUtils.hasFoliaAPI()) {
             foliaSchedulerInvoker(plugin.getServer(), "getRegionScheduler", task,
                     (scheduler, taskConsumer) ->
@@ -110,9 +106,7 @@ public final class SchedulerUtils {
      * @param location the location associated with the task.
      * @param task     the task to run synchronously.
      */
-    public static void run(@NotNull Plugin plugin,
-                           @NotNull Location location,
-                           @NotNull Runnable task) {
+    public static void run(@NotNull Plugin plugin, @NotNull Location location, @NotNull Runnable task) {
         if (VersionUtils.hasFoliaAPI()) {
             foliaSchedulerInvoker(plugin.getServer(), "getRegionScheduler", task,
                     (scheduler, taskConsumer) ->
