@@ -66,6 +66,7 @@ public class Rename extends SubCmd {
 
         if (args.length == 2 && args[1].equalsIgnoreCase("-paste")) {
             itemMeta.setDisplayName(this.copies.get(p.getUniqueId()));
+            itemMeta.setItemName(this.copies.get(p.getUniqueId()));
             item.setItemMeta(itemMeta);
             //TODO feedback
             this.updateView(p);
