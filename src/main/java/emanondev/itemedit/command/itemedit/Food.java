@@ -7,6 +7,9 @@ import emanondev.itemedit.command.SubCmd;
 import emanondev.itemedit.utility.CompleteUtility;
 import emanondev.itemedit.utility.ItemUtils;
 import emanondev.itemedit.utility.VersionUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -25,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @SuppressWarnings("UnstableApiUsage")
+@Slf4j
 public class Food extends SubCmd {
 
 
@@ -460,7 +464,7 @@ public class Food extends SubCmd {
             p.getInventory().setItemInMainHand(setFoodEffects(item, values));
             updateView(p);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             sendFailFeedbackForSub(p, alias, "addeffect");
         }
     }
@@ -554,7 +558,7 @@ public class Food extends SubCmd {
             }
             Util.sendMessage(p, String.join("\n", list));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
         }
     }
 
@@ -781,6 +785,8 @@ public class Food extends SubCmd {
     }
 
 
+    @Setter
+    @Getter
     private static class FoodPojo {
         private PotionEffect potionEffect;
         private float probability;
@@ -790,20 +796,5 @@ public class Food extends SubCmd {
             this.probability = probability;
         }
 
-        public PotionEffect getPotionEffect() {
-            return potionEffect;
-        }
-
-        public void setPotionEffect(PotionEffect potionEffect) {
-            this.potionEffect = potionEffect;
-        }
-
-        public float getProbability() {
-            return probability;
-        }
-
-        public void setProbability(float probability) {
-            this.probability = probability;
-        }
     }
 }

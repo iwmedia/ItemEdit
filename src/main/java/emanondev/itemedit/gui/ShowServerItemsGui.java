@@ -7,6 +7,8 @@ import emanondev.itemedit.command.ServerItemCommand;
 import emanondev.itemedit.storage.ServerStorage;
 import emanondev.itemedit.utility.InventoryUtils;
 import emanondev.itemedit.utility.ItemUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,10 +25,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 
+@Slf4j
 public class ShowServerItemsGui implements PagedGui {
     private static final YMLConfig GUI_CONFIG = ItemEdit.get().getConfig();
     private final Inventory inventory;
     private final Player target;
+    /**
+     * -- GETTER --
+     *
+     * @return 1+
+     */
+    @Getter
     private final int page;
     private int rows;
     private ArrayList<String> ids;
@@ -80,7 +89,8 @@ public class ShowServerItemsGui implements PagedGui {
             }
             ItemStack item = storage.getItem(list.get(slot));
             if (item == null) {
-                new NullPointerException("invalid id " + list.get(slot)).printStackTrace();
+                NullPointerException e = new NullPointerException("invalid id " + list.get(slot));
+                    log.warn(e.getMessage(), e);
                 continue;
             }
             if (showItems) {
@@ -100,13 +110,6 @@ public class ShowServerItemsGui implements PagedGui {
     private ItemStack getPageInfoItem() {
         return this.loadLanguageDescription(this.getGuiItem("gui.serveritems.page-info", Material.NAME_TAG),
                 "gui.serveritems.page-info.description", "%player_name%", target.getName(), "%page%", String.valueOf(page));
-    }
-
-    /**
-     * @return 1+
-     */
-    public int getPage() {
-        return this.page;
     }
 
     @Override
