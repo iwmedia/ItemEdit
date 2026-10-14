@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,28 +37,32 @@ public class Sell extends SubCmd {
         if (economyProvider != null) {
             economy = economyProvider.getProvider();
         }
-        if (economy == null)
+        if (economy == null) {
             throw new IllegalStateException();
+        }
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         try {
             // <id> <amount> <player> <price> [silent]
             if (args.length < 5 || args.length > 6) {
                 throw new IllegalArgumentException("Wrong param number");
             }
             Boolean silent = args.length == 6 ? (Aliases.BOOLEAN.convertAlias(args[5])) : ((Boolean) false);
-            if (silent == null)
+            if (silent == null) {
                 silent = Boolean.parseBoolean(args[5]);
+            }
             int amount = Integer.parseInt(args[2]);
-            if (amount < 1)
+            if (amount < 1) {
                 throw new IllegalArgumentException("Wrong amount number");
+            }
             ItemStack item = ItemEdit.get().getServerStorage().getItem(args[1]);
             Player target = Bukkit.getPlayer(args[3]);
             double price = Double.parseDouble(args[4]);
-            if (price <= 0)
+            if (price <= 0) {
                 throw new IllegalArgumentException();
+            }
             if (ItemEdit.get().getConfig().loadBoolean("serveritem.replace-holders", true)) {
                 ItemMeta meta = ItemUtils.getMeta(item);
                 meta.setDisplayName(UtilsString.fix(meta.getDisplayName(), target, true, "%player_name%", target.getName(), "%player_uuid%", target.getUniqueId().toString()));
@@ -67,18 +72,20 @@ public class Sell extends SubCmd {
             // have enough money?
             if (!economy.has(target, price)) {
                 // not enough money, aborting
-                if (!silent)
+                if (!silent) {
                     sendLanguageString("not-enough-money", null, target, "%id%",
                             args[1].toLowerCase(), "%nick%", ItemEdit.get().getServerStorage().getNick(args[1]),
                             "%amount%", String.valueOf(amount), "%price%", economy.format(price));
+                }
                 return;
             }
             // subtracting money
             if (!economy.withdrawPlayer(target, price).transactionSuccess()) {
                 // error
-                if (!silent)
+                if (!silent) {
                     Util.sendMessage(target,
                             "&cAn error occurred, try again, if this message shows again try to contact the server administrators");
+                }
                 Util.logToFile("[transaction failed] no errors, is your Economy provider stable?");
                 return;
             }
@@ -86,15 +93,17 @@ public class Sell extends SubCmd {
             // received items?
             if (given == 0) {
                 // not enough space, aborting
-                if (!silent)
+                if (!silent) {
                     sendLanguageString("not-enough-space", null, target, "%id%",
                             args[1].toLowerCase(), "%nick%", ItemEdit.get().getServerStorage().getNick(args[1]),
                             "%amount%", String.valueOf(amount));
+                }
                 if (!economy.depositPlayer(target, price).transactionSuccess()) {
                     // error
-                    if (!silent)
+                    if (!silent) {
                         Util.sendMessage(target,
                                 "&cAn error occurred, try again, if this message shows again try to contact the server administrators");
+                    }
                     Util.logToFile("[transaction failed] player '" + target.getName() + "' (" + target.getUniqueId()
                             + ") lost " + economy.format(price) + " money, is your Economy provider stable?");
                     return;
@@ -103,19 +112,22 @@ public class Sell extends SubCmd {
             }
 
             // success, giving some feedback
-            if (!silent)
+            if (!silent) {
                 sendLanguageString("feedback", null, target, "%id%", args[1].toLowerCase(),
                         "%nick%", ItemEdit.get().getServerStorage().getNick(args[1]), "%amount%",
                         String.valueOf(amount), "%price%", economy.format(price));
+            }
 
             if (ItemEdit.get().getConfig().loadBoolean("log.action.sell", true)) {
                 String msg = UtilsString.fix(this.getConfigString("log"), target, true, "%id%", args[1].toLowerCase(),
                         "%nick%", ItemEdit.get().getServerStorage().getNick(args[1]), "%amount%",
                         String.valueOf(amount), "%player_name%", target.getName(), "%price%", economy.format(price));
-                if (ItemEdit.get().getConfig().loadBoolean("log.console", true))
+                if (ItemEdit.get().getConfig().loadBoolean("log.console", true)) {
                     Util.sendMessage(Bukkit.getConsoleSender(), msg);
-                if (ItemEdit.get().getConfig().loadBoolean("log.file", true))
+                }
+                if (ItemEdit.get().getConfig().loadBoolean("log.file", true)) {
                     Util.logToFile(msg);
+                }
             }
         } catch (Exception e) {
             onFail(sender, alias);
@@ -123,9 +135,10 @@ public class Sell extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player))
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
             return Collections.emptyList();
+        }
         switch (args.length) {
             case 2:
                 return CompleteUtility.complete(args[1], ItemEdit.get().getServerStorage().getIds());

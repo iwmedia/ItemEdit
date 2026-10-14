@@ -1,6 +1,9 @@
 package emanondev.itemedit;
 
 import emanondev.itemedit.utility.VersionUtils;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -19,10 +22,28 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@Getter
+@Slf4j
 public class YMLConfig extends YamlConfiguration {
+
+    /**
+     * -- GETTER --
+     * Return the plugin associated with this Config.
+     *
+     * @return the plugin associated with this Config
+     */
     private final JavaPlugin plugin;
     private final File file;
-    private final String name;
+    /**
+     * -- GETTER --
+     * Returns the file path of this config.
+     *
+     * @return the file path starting by
+     * {@link #getPlugin()}.{@link JavaPlugin#getDataFolder()
+     * getDataFolder()}.
+     */
+    private final String fileName;
+    @Setter
     private boolean multiThreadSupport = false;
 
     /**
@@ -32,28 +53,20 @@ public class YMLConfig extends YamlConfiguration {
      * If the plugin jar has a file on name path, that file is used to generate the
      * config file.
      *
-     * @param plugin associated plugin to grab the folder
-     * @param name   raw name of the file sub path
+     * @param plugin   associated plugin to grab the folder
+     * @param fileName raw name of the file sub path
      * @throws NullPointerException     if name is null
      * @throws IllegalArgumentException if name is empty
      */
-    public YMLConfig(@NotNull JavaPlugin plugin, @NotNull String name) {
+    public YMLConfig(@NotNull JavaPlugin plugin, @NotNull String fileName) {
         this.plugin = plugin;
-        name = fixName(name);
-        this.name = name;
-        this.file = new File(plugin.getDataFolder(), name);
+        fileName = fixName(fileName);
+        this.fileName = fileName;
+        this.file = new File(plugin.getDataFolder(), fileName);
         reload();
         if (VersionUtils.hasFoliaAPI()) {
             multiThreadSupport = true;
         }
-    }
-
-    public boolean isMultiThreadSupport() {
-        return multiThreadSupport;
-    }
-
-    public void setMultiThreadSupport(boolean multiThreadSupport) {
-        this.multiThreadSupport = multiThreadSupport;
     }
 
     /**
@@ -73,26 +86,6 @@ public class YMLConfig extends YamlConfiguration {
     }
 
     /**
-     * Returns the file path of this config.
-     *
-     * @return the file path starting by
-     * {@link #getPlugin()}.{@link JavaPlugin#getDataFolder()
-     * getDataFolder()}.
-     */
-    public String getFileName() {
-        return name;
-    }
-
-    /**
-     * Return the plugin associated with this Config.
-     *
-     * @return the plugin associated with this Config
-     */
-    public @NotNull JavaPlugin getPlugin() {
-        return plugin;
-    }
-
-    /**
      * Reload config object in RAM to that of the file.<br>
      * Lose any unsaved changes.<br>
      *
@@ -102,26 +95,27 @@ public class YMLConfig extends YamlConfiguration {
         boolean existed = file.exists();
         if (!file.exists()) {
             if (!file.getParentFile().exists())  // Create parent folders if they don't exist
-                if (!file.getParentFile().mkdirs())
-                    new Exception("unable to create parent folder").printStackTrace();
+                if (!file.getParentFile().mkdirs()) {
+                    log.warn("unable to create parent folder", new Exception());
+                }
 
-            if (plugin.getResource(name.replace('\\', '/')) != null) {
-                plugin.saveResource(name, true); // Save the one from the JAR if possible
+            if (plugin.getResource(fileName.replace('\\', '/')) != null) {
+                plugin.saveResource(fileName, true); // Save the one from the JAR if possible
             } else
                 try {
                     if (!file.createNewFile())
-                        new Exception("unable to create file").printStackTrace();
+                        log.warn("unable to create file", new Exception());
                 } // Create a blank file if there's not one to copy from the JAR
                 catch (IOException e) {
-                    e.printStackTrace();
+                    log.warn(e.getMessage(), e);
                 }
         }
         try {
             this.load(file);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
         }
-        InputStream resource = plugin.getResource(name.replace('\\', '/'));
+        InputStream resource = plugin.getResource(fileName.replace('\\', '/'));
         if (resource != null)
             // Set up defaults in case their config is broken.
             this.setDefaults(YamlConfiguration.loadConfiguration(new InputStreamReader(resource, StandardCharsets.UTF_8)));
@@ -138,17 +132,8 @@ public class YMLConfig extends YamlConfiguration {
         try {
             this.save(file);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
         }
-    }
-
-    /**
-     * Get the file of the config.
-     *
-     * @return the file associated to the config
-     */
-    public @NotNull File getFile() {
-        return file;
     }
 
     /**
@@ -453,7 +438,7 @@ public class YMLConfig extends YamlConfiguration {
         try {
             return UtilsString.fix(load(path, def, List.class), target, color, holders);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             return UtilsString.fix(def, target, color, holders);
         }
     }
@@ -513,7 +498,7 @@ public class YMLConfig extends YamlConfiguration {
         try {
             return UtilsString.fix(get(path, def, List.class), target, color, holders);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             return UtilsString.fix(def, target, color, holders);
         }
     }
@@ -554,9 +539,8 @@ public class YMLConfig extends YamlConfiguration {
             try {
                 return Enum.valueOf(clazz, value.toUpperCase());
             } catch (IllegalArgumentException e2) {
-                e2.printStackTrace();
-                new IllegalArgumentException(getError(errorPath) + "; can't find value for '" + value + "' from enum '"
-                        + clazz.getName() + "' using default").printStackTrace();
+                log.warn(getError(errorPath) + "; can't find value for '" + value + "' from enum '"
+                        + clazz.getName() + "' using default", e2);
             }
         }
         return def;
@@ -619,7 +603,7 @@ public class YMLConfig extends YamlConfiguration {
             Map<String, Object> subMap = ((ConfigurationSection) this.get(path)).getValues(true);
             try {
                 return (Map<String, T>) subMap;
-            } catch (Exception e) {
+            } catch (Exception ignored) {
             }
 
             Map<String, T> result = new LinkedHashMap<>();
@@ -627,12 +611,12 @@ public class YMLConfig extends YamlConfiguration {
                 try {
                     result.put(key, (T) subMap.get(key));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.warn(e.getMessage(), e);
                 }
             }
             return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             return def;
         }
     }

@@ -29,7 +29,9 @@ itemedit:
     description:
       - '&b&l設定物品名稱'
       - ''
-      - '&b&l提示: &b輸入 &eclear &b來恢復預設名稱'
+      - '&b&l提示：&b輸入 &e-clear &b以恢復預設名稱'
+      - '&b&l提示：&b輸入 &e-copy &b以複製名稱'
+      - '&b&l提示：&b輸入 &e-paste &b以貼上先前複製的值'
     params: '<名稱>'
   lore:
     description:
@@ -143,10 +145,10 @@ itemedit:
       - '&b&l設置顏色'
       - ''
       - '&b僅在染色皮甲和煙花火箭上有效，在1.11+版本的服務器上也可用於任何藥水和尖端箭！'
-      - '&e<紅> <綠> <藍> &b是每種顏色要混合的數量'
+      - '&e[紅] [綠] [藍] &b是每種顏色要混合的數量'
       - '&b每種顏色都是介於0和255之間的整數值'
       - '&b如果您感到困惑，可以在Google上搜索"RGB色彩選取器"'
-    params: '<紅> <綠> <藍>'
+    params: '[紅] [綠] [藍]'
   enchant:
     wrong-enchant: '&4[&cItemEdit&4] &c錯誤的附魔值！ &4[&6懸停這裡&4]'
     description:
@@ -193,7 +195,7 @@ itemedit:
         - '&b&l添加/覆蓋所選效果'
         - ''
         - '&e<效果> &b效果類型'
-        - '&e<持續時間> &b以秒為單位的持續時間，&e0 &b表示即時效果'
+        - '&e<持續時間> &b以秒為單位的持續時間'
         - '&e[等級] &b最多127，默認為&e1'
         - '&e[粒子] &b是否顯示粒子？ &etrue&b/&efalse'
         - '&e[環境] &b粒子應有環境標誌？ &etrue&b/&efalse'
@@ -594,6 +596,123 @@ itemedit:
       - '&b<namespace>:tooltip/<id>_background'
       - '&b以及 <namespace>:tooltip/<id>_frame'
     params: '<style/clear>'
+  equipment:
+    wrong-boolean: '&4[&cItemEdit&4] &c布林值錯誤！ &4[&6將滑鼠懸停此處&4]'
+    wrong-sound: '&4[&cItemEdit&4] &c音效值錯誤！ &4[&6將滑鼠懸停此處&4]'
+    wrong-slot: '&4[&cItemEdit&4] &c裝備欄位值錯誤！ &4[&6將滑鼠懸停此處&4]'
+    wrong-entitytype: '&4[&cItemEdit&4] &c實體類型值錯誤！ &4[&6將滑鼠懸停此處&4]'
+    wrong-entitygroup: '&4[&cItemEdit&4] &c實體群組值錯誤！ &4[&6將滑鼠懸停此處&4]'
+    description:
+      - '&6&l設定物品的裝備屬性'
+      - ''
+      - '&b提示：輸入 &e/ie equipment&b 取得更多資訊'
+    params: '<slot/...>'
+    help-header: '&9&lItemEdit 裝備 - 幫助'
+    model:
+      description:
+        - '&6&l設定材質模型'
+        - ''
+        - '&e[key] &b裝備模型的命名空間 ID，於裝備時使用'
+      params: "[key]"
+      feedback: "&a裝備模型已設為 &e%key%"
+      feedback-reset: "&a裝備模型已重設"
+    slot:
+      description:
+        - '&6&l設定可裝備的位置'
+        - ''
+        - '&e<slot> &b物品可以裝備在哪個部位'
+      params: "<slot>"
+      feedback: "&a裝備欄位已設定為 &e%value%"
+    swappable:
+      description:
+        - '&6&l設定物品是否可交換'
+        - ''
+        - '&e[true/false] &btrue 表示物品可交換'
+      params: "[true/false]"
+      feedback: "&a可交換屬性現在是 &e%value%"
+    allowedentities:
+      invalid-type: '&4[&cItemEdit&4] &c值 &6%value% &c不是有效的實體或實體群組'
+      description:
+        - '&6&l設定哪些實體可以穿戴此裝備'
+        - ''
+        - '&e[entity] &b指定的實體類型'
+        - '&e[group] &b指定的實體群組'
+        - ''
+        - '&b所有選中的類型都會被加入'
+      params: "[entity/group] [entity/group] ..."
+      feedback: "&a允許的實體類型為：&e%value%"
+      feedback-reset: "&a已重設允許的實體類型"
+    equipsound:
+      description:
+        - '&6&l設定裝備時的音效'
+        - ''
+        - '&e[sound] &b播放的音效'
+      params: "[sound]"
+      feedback: "&a裝備音效已設定為 &e%value%"
+      feedback-reset: "&a裝備音效已重設為預設值"
+    equiponinteract:
+      description:
+        - '&6&l設定互動時裝備'
+        - ''
+        - '&e[true/false] &btrue 表示與實體互動時會自動裝備'
+      params: "[true/false]"
+      feedback: "&a互動裝備屬性現在是 &e%value%"
+    shearsound:
+      description:
+        - '&6&l設定被剪刀移除時的音效'
+        - ''
+        - '&e[sound] &b播放的音效'
+        - '&b例如南瓜或雪人被剪掉時'
+      params: "[sound]"
+      feedback: "&a剪刀音效已設定為 &e%value%"
+      feedback-reset: "&a剪刀音效已重設為預設值"
+    canshear:
+      unsupported-version: '&4[&cItemEdit&4] &c你的伺服器版本 (&6%value%&c) 不支援此功能'
+      description:
+        - '&6&l設定是否可用剪刀移除裝備'
+        - ''
+        - '&e[true/false] &btrue 表示可剪下裝備'
+        - '&b例如南瓜或雪人'
+      params: "[true/false]"
+      feedback: "&a可剪屬性現在是 &e%value%"
+    dispensable:
+      description:
+        - '&6&l設定是否可由發射器裝備'
+        - ''
+        - '&e[true/false] &btrue 表示發射器可裝備此物品'
+      params: "[true/false]"
+      feedback: "&a發射器裝備屬性現在是 &e%value%"
+    damageonhurt:
+      description:
+        - '&6&l設定物品是否會受損'
+        - ''
+        - '&e[true/false] &btrue 表示受傷時會降低耐久'
+        - ''
+        - '&b注意：僅當物品最大堆疊數為 1 時才會受損'
+        - '&b  使用 &e/ie maxstacksize 1'
+        - '&b提示：記得設定物品最大耐久：'
+        - '  &e/ie maxdurability <amount>'
+      params: "[true/false]"
+      feedback: "&a受傷損壞屬性現在是 &e%value%"
+      warning-maxstacksize: '&4[&cItemEdit&4] &c物品最大堆疊數必須為 &61 &c才能受損 &4[&6點擊修復&4]'
+    cameraoverlay:
+      description:
+        - '&6&l設定攝影疊加效果'
+        - ''
+        - '&e[namespacedkey] &b你想使用的疊加'
+        - '&b疊加效果需透過材質包設定，原版中只有'
+        - '&bminecraft:misc/pumpkinblur'
+      params: "[namespacedkey]"
+      feedback: "&a攝影疊加效果已更新"
+      feedback-reset: "&a攝影疊加效果已移除"
+      invalid-namespacedkey: "&c命名空間鍵 &6%value% &c無效"
+    clear:
+      description:
+        - '&6&l完全移除物品的裝備屬性'
+        - ''
+        - '&b若物品為原版裝備則恢復預設值'
+      params: ""
+      feedback: "&a裝備屬性已重設為預設值"
 serveritem:
   help-header: '&9&lServerItem - 幫助'
   give:

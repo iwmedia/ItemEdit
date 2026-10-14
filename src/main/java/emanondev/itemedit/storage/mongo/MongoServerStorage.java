@@ -4,8 +4,8 @@ import com.mongodb.CursorType;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import emanondev.itemedit.storage.ServerStorage;
+import emanondev.itemedit.utility.ItemUtils;
 import org.bson.Document;
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ public class MongoServerStorage implements ServerStorage {
         return this.mapToItem(serializedItem);
     }
 
-    private @Nullable ItemStack mapToItem(final @Nullable Map<String, Object> serializedItem) {
+    private @Nullable ItemStack mapToItem(@Nullable Map<String, Object> serializedItem) {
         if (serializedItem == null) return null;
 
         ItemStack item = ItemStack.deserialize(serializedItem);
@@ -74,8 +74,9 @@ public class MongoServerStorage implements ServerStorage {
     public void setItem(@NotNull String id, @NotNull ItemStack item) {
         validateID(id);
         id = id.toLowerCase(Locale.ENGLISH);
-        if (item.getType() == Material.AIR)
+        if (ItemUtils.isAirOrNull(item)) {
             throw new IllegalArgumentException();
+        }
         item.setAmount(1);
         this.mongoStorage.getServerStorage().insertOne(new Document()
                 .append("item_id", id)

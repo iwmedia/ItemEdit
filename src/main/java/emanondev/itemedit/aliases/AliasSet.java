@@ -2,9 +2,12 @@ package emanondev.itemedit.aliases;
 
 import emanondev.itemedit.ItemEdit;
 import emanondev.itemedit.YMLConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@Slf4j
 public abstract class AliasSet<T> implements IAliasSet<T> {
 
     private static final YMLConfig config = ItemEdit.get().getConfig("aliases.yml");
@@ -30,9 +33,9 @@ public abstract class AliasSet<T> implements IAliasSet<T> {
                 ok = false;
             }
             if (val == null) {
-                new NullPointerException(value == null ? "null value"
-                        : value + " of " + value.getClass().getSimpleName() + " has null name")
-                        .printStackTrace();
+                NullPointerException e = new NullPointerException(value == null ? "null value"
+                        : value + " of " + value.getClass().getSimpleName() + " has null name");
+                log.warn(e.getMessage(), e);
                 continue;
             }
             if (val.contains(" ") || !val.equals(val.toLowerCase(Locale.ENGLISH))) {
@@ -79,19 +82,23 @@ public abstract class AliasSet<T> implements IAliasSet<T> {
     public abstract Collection<T> getValues();
 
     protected void set(String alias, T obj) {
-        if (obj == null || alias == null)
+        if (obj == null || alias == null) {
             throw new NullPointerException();
-        if (alias.isEmpty())
+        }
+        if (alias.isEmpty()) {
             throw new IllegalArgumentException();
+        }
         alias = alias.replace(" ", "_").toLowerCase(Locale.ENGLISH);
 
         String path = this.path + "." + getPathName(obj);
-        if (alias.equals(config.get(path)))
+        if (alias.equals(config.get(path))) {
             return;
+        }
 
-        if (map.containsKey(alias))
+        if (map.containsKey(alias)) {
             throw new IllegalArgumentException("Alias " + alias
                     + " is already used, check aliases.yml avoid using the same alias for different things");
+        }
 
         map.remove(config.get(path)); //TODO to fix
         map.put(alias, obj);
@@ -104,7 +111,7 @@ public abstract class AliasSet<T> implements IAliasSet<T> {
         return new ArrayList<>(map.keySet());
     }
 
-    public T convertAlias(String alias) {
+    public @Nullable T convertAlias(String alias) {
         return map.get(alias.toLowerCase(Locale.ENGLISH));
     }
 

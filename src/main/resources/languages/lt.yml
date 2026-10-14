@@ -28,7 +28,9 @@ itemedit:
     description:
       - '&b&lNustatyti daikto pavadinimą'
       - ''
-      - '&b&lPatarimas: &bįveskite &eclear &b, kad grąžintumėte pavadinimą į numatytąjį'
+      - '&b&lPatarimas: &bįrašyk &e-clear &bnorėdami grąžinti numatytąjį pavadinimą'
+      - '&b&lPatarimas: &bįrašyk &e-copy &bnorėdami nukopijuoti pavadinimą'
+      - '&b&lPatarimas: &bįrašyk &e-paste &bnorėdami įklijuoti anksčiau nukopijuotą reikšmę'
     params: '<name>'
   lore:
     description:
@@ -148,10 +150,10 @@ itemedit:
       - ''
       - '&bVeikia su odiniais šarvais ir fejerverkų žvaigždėmis, serveriuose'
       - '&b 1.11+ veikia su bet kokiais potionais ir užnuodytomis strėlėmis!'
-      - '&e<red (0-255)> <green (0-255)> <blue (0-255)> &byra kiekvienos spalvos kiekis, kurį reikia sujungti'
+      - '&e[red (0-255)] [green (0-255)] [blue (0-255)] &byra kiekvienos spalvos kiekis, kurį reikia sujungti'
       - '&bKiekviena spalva yra int reikšmė nuo 0 iki 255'
       - '&bJei nesuprantate, ieškokite „&eRGB color picker&b“'
-    params: "<red (0-255)> <green (0-255)> <blue (0-255)>"
+    params: "[red (0-255)] [green (0-255)] [blue (0-255)]"
   enchant:
     wrong-enchant: '&4[&cItemEdit&4] &cNeteisinga užkeikimo reikšmė! &4[&6hover here&4]'
     description:
@@ -200,7 +202,7 @@ itemedit:
         - '&b&lPridėti/Pakeisti pasirinktą efektą'
         - ''
         - '&e<effect> &befekto tipas'
-        - '&e<duration> &btrukmė sekundėmis, &e0 &bskirta momentiniams efektams'
+        - '&e<duration> &btrukmė sekundėmis'
         - '&e[level] &bIki 127, pagal numatytuosius nustatymus &e1'
     remove:
       params: '<effect>'
@@ -603,6 +605,123 @@ itemedit:
       - '&b<namespace>:tooltip/<id>_background'
       - '&bir <namespace>:tooltip/<id>_frame'
     params: '<style/clear>'
+  equipment:
+    wrong-boolean: '&4[&cItemEdit&4] &cNeteisinga loginė reikšmė! &4[&6užveskite čia&4]'
+    wrong-sound: '&4[&cItemEdit&4] &cNeteisinga garso reikšmė! &4[&6užveskite čia&4]'
+    wrong-slot: '&4[&cItemEdit&4] &cNeteisinga įrangos reikšmė! &4[&6užveskite čia&4]'
+    wrong-entitytype: '&4[&cItemEdit&4] &cNeteisingas entiteto tipas! &4[&6užveskite čia&4]'
+    wrong-entitygroup: '&4[&cItemEdit&4] &cNeteisinga entiteto grupė! &4[&6užveskite čia&4]'
+    description:
+      - '&6&lNustato daikto įrangos savybę'
+      - ''
+      - '&bPatarimas: įveskite &e/ie equipment&b daugiau informacijos'
+    params: '<slot/...>'
+    help-header: '&9&lItemEdit Įranga – Pagalba'
+    model:
+      description:
+        - '&6&lNustato tekstūros modelį'
+        - ''
+        - '&e[key] &bVardų srities ID įrangos modelio, naudojamo uždėjus'
+      params: "[key]"
+      feedback: "&aĮrangos modelis dabar yra &e%key%"
+      feedback-reset: "&aĮrangos modelis buvo atstatytas"
+    slot:
+      description:
+        - '&6&lNustato kur ant kūno dėti daiktą'
+        - ''
+        - '&e<slot> &bkurią vietą ant kūno užima daiktas'
+      params: "<slot>"
+      feedback: "&aĮranga jau nustatyta į &e%value%"
+    swappable:
+      description:
+        - '&6&lNustato ar daiktas keičiamas'
+        - ''
+        - '&e[true/false] &btrue = galima keisti'
+      params: "[true/false]"
+      feedback: "&aKeičiamumo savybė dabar &e%value%"
+    allowedentities:
+      invalid-type: '&4[&cItemEdit&4] &cReikšmė &6%value% &cnėra galiojantis entitetas ar jo grupė'
+      description:
+        - '&6&lNustato leidžiamus entitetus dėvėti įrangą'
+        - ''
+        - '&e[entity] &bkuris entiteto tipas'
+        - '&e[group] &bkurio entiteto grupė'
+        - ''
+        - '&bVisi pasirinkti tipai bus įtraukti'
+      params: "[entity/group] [entity/group] ..."
+      feedback: "&aLeidžiami entitetų tipai: &e%value%"
+      feedback-reset: "&aEntitetų tipai atstatyti"
+    equipsound:
+      description:
+        - '&6&lNustato įrengimo garsą'
+        - ''
+        - '&e[sound] &bkoks garsas turėtų skambėti'
+      params: "[sound]"
+      feedback: "&aĮrengimo garsas dabar &e%value%"
+      feedback-reset: "&aĮrengimo garsas atstatytas į numatytąjį"
+    equiponinteract:
+      description:
+        - '&6&lNustato įrengimą sąveikos metu'
+        - ''
+        - '&e[true/false] &btrue = įrenda sąveikos metu'
+      params: "[true/false]"
+      feedback: "&aSąveikos įrengimo savybė dabar &e%value%"
+    shearsound:
+      description:
+        - '&6&lNustato garso efektą, kai nupjaunama'
+        - ''
+        - '&e[sound] &bkoks garsas turi skambėti'
+        - '&bdynojaus/žmogaus pjovimo atveju'
+      params: "[sound]"
+      feedback: "&aPjovimo garsas dabar &e%value%"
+      feedback-reset: "&aPjovimo garsas atstatytas pagal nutylėjimą"
+    canshear:
+      unsupported-version: '&4[&cItemEdit&4] &cJūsų serverio versija (&6%value%&c) nepalaiko šios funkcijos'
+      description:
+        - '&6&lNustato, ar galima nusikirpti'
+        - ''
+        - '&e[true/false] &btrue = galima nupjauti'
+        - '&bdynojaus/žmogaus ekipiruotę'
+      params: "[true/false]"
+      feedback: "&aGalimybė kirpti dabar &e%value%"
+    dispensable:
+      description:
+        - '&6&lNustato, ar galima automatizuotai įrengti'
+        - ''
+        - '&e[true/false] &btrue = galima naudoti dispenser'
+      params: "[true/false]"
+      feedback: "&aAutomatinio įrengimo savybė dabar &e%value%"
+    damageonhurt:
+      description:
+        - '&6&lNustato ar daiktas gali sugesti'
+        - ''
+        - '&e[true/false] &btrue = sugenda gavus žalą'
+        - ''
+        - '&bDėmesio: tik daiktai su maksimalia krūva 1 gali sugesti'
+        - '&b  naudokite &e/ie maxstacksize 1'
+        - '&bPatarimas: nustatykite maksimalų patvarumą:'
+        - '  &e/ie maxdurability <amount>'
+      params: "[true/false]"
+      feedback: "&aSugadinimo gavus žalą savybė dabar &e%value%"
+      warning-maxstacksize: '&4[&cItemEdit&4] &cDaikto krūva turi būti &61&c kad jis galėtų sugesti &4[&6spustelėkite pataisyti&4]'
+    cameraoverlay:
+      description:
+        - '&6&lNustato kameros perdengimą'
+        - ''
+        - '&e[namespacedkey] &bkoks perdengimas naudojamas'
+        - '&bPerdengimai nustatomi tekstūros pakete; originalus '
+        - '&bminecraft:misc/pumpkinblur'
+      params: "[namespacedkey]"
+      feedback: "&aKameros perdengimas atnaujintas"
+      feedback-reset: "&aKameros perdengimas pašalintas"
+      invalid-namespacedkey: "&cVardinis raktas &6%value% &cyra neteisingas"
+    clear:
+      description:
+        - '&6&lVisiškai pašalina įrangos savybę'
+        - ''
+        - '&bJei tai originali įranga — atstatyti numatytąsias reikšmes'
+      params: ""
+      feedback: "&aĮrangos savybės atstatytos į numatytąsias"
 serveritem:
   help-header: '&9&lServerItem - Help'
   give:

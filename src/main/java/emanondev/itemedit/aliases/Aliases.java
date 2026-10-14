@@ -1,9 +1,13 @@
 package emanondev.itemedit.aliases;
 
+import emanondev.itemedit.utility.TagContainer;
 import emanondev.itemedit.utility.VersionUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
+import org.bukkit.Tag;
 import org.bukkit.block.banner.PatternType;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.potion.PotionEffectType;
@@ -12,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@Slf4j
 public class Aliases {
 
     public static final EnchAliases ENCHANT = getEnchAliases();
@@ -24,16 +29,19 @@ public class Aliases {
         @Override
         public String getName(PotionEffectType type) {
             String name = type.getName().toLowerCase(Locale.ENGLISH);
-            if (name.startsWith("minecraft:"))
+            if (name.startsWith("minecraft:")) {
                 name = name.substring(10);
+            }
             return name;
         }
 
         private Collection<PotionEffectType> grabValues() {
             HashSet<PotionEffectType> set = new HashSet<>();
-            for (PotionEffectType val : PotionEffectType.values())
-                if (val != null)
+            for (PotionEffectType val : PotionEffectType.values()) {
+                if (val != null) {
                     set.add(val);
+                }
+            }
             return set;
         }
 
@@ -69,8 +77,9 @@ public class Aliases {
         @Override
         public String getName(ItemFlag type) {
             String name = type.name().toLowerCase(Locale.ENGLISH);
-            if (name.startsWith("hide_"))
+            if (name.startsWith("hide_")) {
                 name = name.substring("hide_".length());
+            }
             return name;
         }
     };
@@ -102,15 +111,19 @@ public class Aliases {
     public static final EquipmentSlotGroupAliases EQUIPMENT_SLOTGROUPS =
             VersionUtils.isVersionAfter(1, 21) ? new EquipmentSlotGroupAliases() : null;
     public static final SoundAliases SOUND = getSoundAliases();
+    public static final AliasSet<EntityType> ENTITY_TYPE = new EnumAliasSet<>(EntityType.class);
+    public static final AliasSet<TagContainer<EntityType>> ENTITY_GROUPS =
+            VersionUtils.isVersionAfter(1,21)?
+                    new TagAliasSet<>("entitygroups", EntityType.class, Tag.REGISTRY_ENTITY_TYPES):null;
 
-
-    private final static Map<String, IAliasSet<?>> types = new HashMap<>();
+    private static final Map<String, IAliasSet<?>> types = new HashMap<>();
     private static boolean loaded = false;
 
     private static AliasSet<PatternType> getPatternAlias() {
         try {
-            if (VersionUtils.isVersionAfter(1, 20, 6))
+            if (VersionUtils.isVersionAfter(1, 20, 6)) {
                 return new BannerPatternAliasesNew();
+            }
         } catch (Throwable ignored) {
         }
         return new BannerPatternAliasesOld();
@@ -120,26 +133,29 @@ public class Aliases {
         if (VersionUtils.isVersionUpTo(1, 19, 4))
             return null;
         try {
-            if (VersionUtils.isVersionAfter(1, 20, 2))
+            if (VersionUtils.isVersionAfter(1, 20, 2)) {
                 return new TrimMaterialAliasesNew();
-            else
+            } else {
                 return new TrimMaterialAliasesOld();
+            }
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             return null;
         }
     }
 
     private static TrimPatternAliases getTrimPatternAliases() {
-        if (VersionUtils.isVersionUpTo(1, 19, 4))
+        if (VersionUtils.isVersionUpTo(1, 19, 4)) {
             return null;
+        }
         try {
-            if (VersionUtils.isVersionAfter(1, 20, 2))
+            if (VersionUtils.isVersionAfter(1, 20, 2)) {
                 return new TrimPatternAliasesNew();
-            else
+            } else {
                 return new TrimPatternAliasesOld();
+            }
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             return null;
         }
     }
@@ -166,6 +182,8 @@ public class Aliases {
         registerAliasType(EQUIPMENT_SLOTGROUPS);
         registerAliasType(ANIMATION);
         registerAliasType(SOUND);
+        registerAliasType(ENTITY_TYPE);
+        registerAliasType(ENTITY_GROUPS);
     }
 
     public static <T> void registerAliasType(@Nullable IAliasSet<T> set) {
@@ -173,10 +191,12 @@ public class Aliases {
     }
 
     public static <T> void registerAliasType(@Nullable IAliasSet<T> set, boolean forced) {
-        if (set == null)
+        if (set == null) {
             return;
-        if (!forced && types.containsKey(set.getID()))
+        }
+        if (!forced && types.containsKey(set.getID())) {
             throw new IllegalArgumentException("Duplicate id");
+        }
         types.put(set.getID(), set);
     }
 
@@ -199,65 +219,75 @@ public class Aliases {
     }
 
     private static EggTypeAliases getEggTypeAliases() {
-        if (VersionUtils.isVersionInRange(1, 11, 1, 12))
+        if (VersionUtils.isVersionInRange(1, 11, 1, 12)) {
             return new EggTypeAliases();
+        }
         return null;
     }
 
     private static TropicalFishPatternAliases getTropicalPatternAliases() {
-        if (VersionUtils.isVersionUpTo(1, 12))
+        if (VersionUtils.isVersionUpTo(1, 12)) {
             return null;
+        }
         return new TropicalFishPatternAliases();
     }
 
     private static GenAliases getGenAliases() {
-        if (VersionUtils.isVersionUpTo(1, 9))
+        if (VersionUtils.isVersionUpTo(1, 9)) {
             return null;
+        }
         return new GenAliases();
     }
 
     @NotNull
     private static EnchAliases getEnchAliases() {
-        if (VersionUtils.isVersionUpTo(1, 12))
+        if (VersionUtils.isVersionUpTo(1, 12)) {
             return new EnchAliasesOld();
+        }
         return new EnchAliases();
     }
 
     private static AttributeAliases getAttributeAliases() {
-        if (VersionUtils.isVersionUpTo(1, 11))
+        if (VersionUtils.isVersionUpTo(1, 11)) {
             return null;
-        if (VersionUtils.isVersionUpTo(1, 21, 2))
+        }
+        if (VersionUtils.isVersionUpTo(1, 21, 2)) {
             return new AttributeAliasesOld();
+        }
         return new AttributeAliasesNew();
     }
 
     private static OperationAliases getAttributeOperationAliases() {
-        if (VersionUtils.isVersionUpTo(1, 11))
+        if (VersionUtils.isVersionUpTo(1, 11)) {
             return null;
+        }
         return new OperationAliases();
     }
 
     private static RarityAliases getRarityAliases() {
-        if (VersionUtils.isVersionUpTo(1, 20, 4))
+        if (VersionUtils.isVersionUpTo(1, 20, 4)) {
             return null;
+        }
         try {
             return new RarityAliases();
         } catch (Throwable t) {
-            t.printStackTrace();
+            log.warn(t.getMessage(), t);
             return null;
         }
     }
 
     private static AxolotlVariantAliases getAxolotlVariantAliases() {
-        if (VersionUtils.isVersionUpTo(1, 17))
+        if (VersionUtils.isVersionUpTo(1, 17)) {
             return null;
+        }
         return new AxolotlVariantAliases();
     }
 
 
     private static GoatHornSoundAliases getGoatHornSoundAliases() {
-        if (VersionUtils.isVersionUpTo(1, 19, 2))
+        if (VersionUtils.isVersionUpTo(1, 19, 2)) {
             return null;
+        }
         try {
             return new GoatHornSoundAliases();
         } catch (Throwable e) {
@@ -266,8 +296,9 @@ public class Aliases {
     }
 
     private static SoundAliases getSoundAliases() {
-        if (VersionUtils.isVersionAfter(1, 20, 5))
+        if (VersionUtils.isVersionAfter(1, 20, 5)) {
             return new SoundAliases();
+        }
         return null;
     }
 

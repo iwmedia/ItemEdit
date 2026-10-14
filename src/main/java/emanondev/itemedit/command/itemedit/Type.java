@@ -3,11 +3,12 @@ package emanondev.itemedit.command.itemedit;
 import emanondev.itemedit.command.ItemEditCommand;
 import emanondev.itemedit.command.SubCmd;
 import emanondev.itemedit.utility.CompleteUtility;
-import emanondev.itemedit.utility.VersionUtils;
+import emanondev.itemedit.utility.ItemUtils;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -19,16 +20,18 @@ public class Type extends SubCmd {
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
         ItemStack item = this.getItemInHand(p);
         try {
-            if (args.length != 2)
+            if (args.length != 2) {
                 throw new IllegalArgumentException("Wrong param number");
+            }
 
             Material mat = Material.valueOf(args[1].toUpperCase());
-            if (mat == Material.AIR)
+            if (mat == Material.AIR) {
                 throw new IllegalArgumentException();
+            }
             item.setType(mat);
             updateView(p);
         } catch (Exception e) {
@@ -38,11 +41,9 @@ public class Type extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
         if (args.length == 2) {
-            if (VersionUtils.isVersionUpTo(1, 12, 99))
-                return CompleteUtility.complete(args[1], Material.class);
-            return CompleteUtility.complete(args[1], Material.class, Material::isItem);
+            return CompleteUtility.complete(args[1], Material.class, ItemUtils::isItem);
         }
         return Collections.emptyList();
     }

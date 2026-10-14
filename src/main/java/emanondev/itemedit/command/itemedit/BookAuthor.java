@@ -11,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +23,7 @@ public class BookAuthor extends SubCmd {
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
         ItemStack item = this.getItemInHand(p);
         if (!(item.getType() == Material.WRITTEN_BOOK)) {
@@ -41,8 +42,9 @@ public class BookAuthor extends SubCmd {
 
         try {
             StringBuilder name = new StringBuilder(args[1]);
-            for (int i = 2; i < args.length; i++)
+            for (int i = 2; i < args.length; i++) {
                 name.append(" ").append(args[i]);
+            }
             meta.setAuthor(UtilsString.fix(name.toString(), null, true));
             item.setItemMeta(meta);
             updateView(p);
@@ -54,9 +56,10 @@ public class BookAuthor extends SubCmd {
 
     // itemedit bookauthor <name>
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (args.length == 2)
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        if (args.length == 2) {
             return CompleteUtility.completePlayers(args[1]);
+        }
         return Collections.emptyList();
     }
 }

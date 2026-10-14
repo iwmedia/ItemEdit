@@ -2,8 +2,11 @@ package emanondev.itemedit;
 
 import emanondev.itemedit.command.AbstractCommand;
 import emanondev.itemedit.compability.Metrics;
+import emanondev.itemedit.plugin.PluginAdditionalInfo;
 import emanondev.itemedit.utility.ReflectionUtils;
 import emanondev.itemedit.utility.VersionUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -23,20 +26,23 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
+@Slf4j
 public abstract class APlugin extends JavaPlugin {
 
     private final Map<String, YMLConfig> configs =
             VersionUtils.hasFoliaAPI() ? new ConcurrentHashMap<>() : new HashMap<>();
     private final Map<String, YMLConfig> languageConfigs =
             VersionUtils.hasFoliaAPI() ? new ConcurrentHashMap<>() : new HashMap<>();
+    @Getter
+    private final PluginAdditionalInfo pluginAdditionalInfo;
     private boolean useMultiLanguage;
     private String defaultLanguage;
     private CooldownAPI cooldownApi = null;
-    private Metrics metrics;
+    @Getter
+    private Metrics bstatsMetrics;
 
-    @Nullable
-    public Metrics getMetrics() {
-        return metrics;
+    protected APlugin() {
+        this.pluginAdditionalInfo = new PluginAdditionalInfo(this);
     }
 
     /**
@@ -63,8 +69,9 @@ public abstract class APlugin extends JavaPlugin {
     @NotNull
     public YMLConfig getConfig(@NotNull String fileName) {
         fileName = YMLConfig.fixName(fileName);
-        if (configs.containsKey(fileName))
+        if (configs.containsKey(fileName)) {
             return configs.get(fileName);
+        }
         YMLConfig conf = new YMLConfig(this, fileName);
         configs.put(fileName, conf);
         return conf;
@@ -131,8 +138,9 @@ public abstract class APlugin extends JavaPlugin {
         }
         command.setExecutor(executor);
         command.setTabCompleter(executor);
-        if (aliases != null)
+        if (aliases != null) {
             command.setAliases(aliases);
+        }
     }
 
     /**
@@ -186,22 +194,16 @@ public abstract class APlugin extends JavaPlugin {
      * You can update configuration by overriding this method.
      * configuration version is saved as int on {@code config.yml} at path {@code config-version},
      * if not specified it's {@code 1}.
+     *
      * @param oldConfigVersion old configuration version you update from
      */
     protected void updateConfigurations(int oldConfigVersion) {
     }
 
     /**
-     * Retrieve the spigot project ID of the plugin.
-     *
-     * @return The project ID or null if not applicable.
+     * @see #languagesMetricsIsAdmin()
+     * @see #languagesMetricsIsUser()
      */
-    @Nullable
-    public abstract Integer getProjectId();
-
-    @Nullable
-    public abstract Integer getMetricsId();
-
     protected boolean addLanguagesMetrics() {
         return false;
     }
@@ -221,24 +223,27 @@ public abstract class APlugin extends JavaPlugin {
         boolean check = false;
         for (YMLConfig conf : configs.values())
             try {
-                if (conf.getFile().exists())
+                if (conf.getFile().exists()) {
                     conf.reload();
-                else
+                } else {
                     check = true;
+                }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn(e.getMessage(), e);
             }
         if (check) {
             ArrayList<String> toRemove = new ArrayList<>();
             configs.forEach((k, v) -> {
                 try {
-                    if (!v.getFile().exists())
+                    if (!v.getFile().exists()) {
                         toRemove.add(k);
+                    }
                 } catch (Exception ignored) {
                 }
             });
-            for (String key : toRemove)
+            for (String key : toRemove) {
                 configs.remove(key);
+            }
         }
         languageConfigs.clear();
         getLanguageConfig(null);
@@ -251,8 +256,9 @@ public abstract class APlugin extends JavaPlugin {
      * @return The CooldownAPI instance.
      */
     public @NotNull CooldownAPI getCooldownAPI() {
-        if (cooldownApi == null)
+        if (cooldownApi == null) {
             cooldownApi = new CooldownAPI(this);
+        }
         return cooldownApi;
     }
 
@@ -277,8 +283,10 @@ public abstract class APlugin extends JavaPlugin {
                 return;
             }
             initLanguages();
-            if (getProjectId() != null && getConfig().getBoolean("check-updates", true))
-                new UpdateChecker(this, getProjectId()).logUpdates();
+            if (getPluginAdditionalInfo().getSpigotResourceId() != null
+                    && getConfig().getBoolean("check-updates", true)) {
+                new UpdateChecker(this).logUpdates();
+            }
             initConfigUpdater();
             initMetrics();
 
@@ -288,7 +296,7 @@ public abstract class APlugin extends JavaPlugin {
 
         } catch (Throwable e) {
             this.log(ChatColor.RED + "Error while loading " + this.getName() + ", disabling it");
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             Bukkit.getServer().getPluginManager().disablePlugin(this);
         }
     }
@@ -320,17 +328,18 @@ public abstract class APlugin extends JavaPlugin {
      */
     protected final void enableWithError(@NotNull String error) {
         TabExecutorError exec = new TabExecutorError(ChatColor.RED + error);
-        for (String command : this.getDescription().getCommands().keySet())
+        for (String command : this.getDescription().getCommands().keySet()) {
             registerCommand(command, exec, null);
+        }
         log(ChatColor.RED + error);
     }
 
     @NotNull
     private String getLocale(@Nullable CommandSender sender) {
         String locale;
-        if (!(sender instanceof Player))
+        if (!(sender instanceof Player)) {
             locale = this.defaultLanguage;
-        else if (VersionUtils.isVersionAfter(1, 12) && this.useMultiLanguage) {
+        } else if (VersionUtils.isVersionAfter(1, 12) && this.useMultiLanguage) {
             //apparently zh_tw and zh_cn are quite different, zh_cn and zh_hk will both fall under zh.yml
             locale = ((Player) sender).getLocale().equals("zh_tw") ?
                     ((Player) sender).getLocale() : ((Player) sender).getLocale().split("_")[0];
@@ -341,13 +350,13 @@ public abstract class APlugin extends JavaPlugin {
     }
 
     private void initMetrics() {
-        Integer pluginId = getMetricsId();
+        Integer pluginId = getPluginAdditionalInfo().getBstatsPluginId();
         if (pluginId == null) {
-            metrics = null;
+            bstatsMetrics = null;
             return;
         }
         try {
-            metrics = new Metrics(this, pluginId);
+            bstatsMetrics = new Metrics(this, pluginId);
             if (addLanguagesMetrics()) {
                 Predicate<Player> isAdmin = languagesMetricsIsAdmin();
                 Predicate<Player> isUser = languagesMetricsIsUser();
@@ -355,29 +364,33 @@ public abstract class APlugin extends JavaPlugin {
                 if (!VersionUtils.isVersionAfter(1, 12)) {
                     return;
                 }
-                metrics.addCustomChart(new Metrics.DrilldownPie("admins_languages", () -> {
+                bstatsMetrics.addCustomChart(new Metrics.DrilldownPie("admins_languages", () -> {
                     Map<String, Map<String, Integer>> mainMap = new HashMap<>();
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        if (!isAdmin.test(player))
+                        if (!isAdmin.test(player)) {
                             continue;
+                        }
                         String locale = player.getLocale().toLowerCase(Locale.ENGLISH);
                         String pre = locale.split("_")[0];
-                        if (!mainMap.containsKey(pre))
+                        if (!mainMap.containsKey(pre)) {
                             mainMap.put(pre, new HashMap<>());
+                        }
                         Map<String, Integer> subMap = mainMap.get(pre);
                         subMap.put(locale, subMap.getOrDefault(locale, 0) + 1);
                     }
                     return mainMap;
                 }));
-                metrics.addCustomChart(new Metrics.DrilldownPie("users_languages", () -> {
+                bstatsMetrics.addCustomChart(new Metrics.DrilldownPie("users_languages", () -> {
                     Map<String, Map<String, Integer>> mainMap = new HashMap<>();
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        if (!isUser.test(player))
+                        if (!isUser.test(player)) {
                             continue;
+                        }
                         String locale = player.getLocale().toLowerCase(Locale.ENGLISH);
                         String pre = locale.split("_")[0];
-                        if (!mainMap.containsKey(pre))
+                        if (!mainMap.containsKey(pre)) {
                             mainMap.put(pre, new HashMap<>());
+                        }
                         Map<String, Integer> subMap = mainMap.get(pre);
                         subMap.put(locale, subMap.getOrDefault(locale, 0) + 1);
                     }
@@ -385,17 +398,18 @@ public abstract class APlugin extends JavaPlugin {
                 }));
             }
         } catch (Throwable t) {
-            t.printStackTrace();
+            log.warn(t.getMessage(), t);
         }
-        metrics = null;
+        bstatsMetrics = null;
     }
 
     private void initConfigUpdater() {
         ConfigurationSection def = this.getConfig().getDefaultSection();
         int currentVersion = def == null ? 1 : def.getInt("config-version", 1);
         int oldVersion = this.getConfig().getInt("config-version", 1);
-        if (oldVersion >= currentVersion)
+        if (oldVersion >= currentVersion) {
             return;
+        }
         this.log("Updating configuration version (" + oldVersion + " -> " + currentVersion + ")");
         updateConfigurations(oldVersion);
         this.getConfig().set("config-version", currentVersion);
@@ -415,10 +429,11 @@ public abstract class APlugin extends JavaPlugin {
                 if (langFolder.exists()) {
                     File[] list = langFolder.listFiles();
                     if (list != null) {
-                        for (File file : list)
+                        for (File file : list) {
                             if (getResource("languages/" + file.getName()) != null) {
                                 saveResource("languages/" + file.getName(), true);
                             }
+                        }
                     }
                 }
             }
@@ -436,8 +451,9 @@ public abstract class APlugin extends JavaPlugin {
 
         public TabExecutorError(@NotNull String msg) {
             this.msg = msg;
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < 20; i++) {
                 APlugin.this.log(msg);
+            }
         }
 
         @Override

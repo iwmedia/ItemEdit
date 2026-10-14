@@ -29,7 +29,9 @@ itemedit:
     description:
       - '&6&lSet item''s name'
       - ''
-      - '&b&lTip: &btype &eclear &bto revert name to default'
+      - '&b&lTip: &btype &e-clear &bto revert name to default'
+      - '&b&lTip: &btype &e-copy &bto copy the name'
+      - '&b&lTip: &btype &e-paste &bto paste previously copied value'
     params: '<name>'
   lore:
     description:
@@ -147,10 +149,10 @@ itemedit:
       - ''
       - '&bWorks on leather armor and firework stars, on servers'
       - '&b 1.11+ works on any Potion and Tipped arrows too!'
-      - '&e<red (0-255)> <green (0-255)> <blue (0-255)> &bare the amount of each color to combine'
+      - '&e[red (0-255)] [green (0-255)] [blue (0-255)] &bare the amount of each color to combine'
       - '&bEach color is an int value between 0 and 255'
       - '&bIf you are confused google "&eRGB color picker&b"'
-    params: '<red (0-255)> <green (0-255)> <blue (0-255)>'
+    params: '[red (0-255)] [green (0-255)] [blue (0-255)]'
   enchant:
     wrong-enchant: '&4[&cItemEdit&4] &cWrong Enchant Value! &4[&6hover here&4]'
     description:
@@ -197,7 +199,7 @@ itemedit:
         - '&6&lAdds/Override selected effect'
         - ''
         - '&e<effect> &beffect type'
-        - '&e<duration> &bduration in seconds, &e0 &bfor instant effects'
+        - '&e<duration> &bduration in seconds'
         - '&e[level] &bUp to 127, by default &e1'
         - '&e[particles] &bShould show particles? &etrue&b/&efalse'
         - '&e[ambient] &bParticles should have ambient flag? &etrue&b/&efalse'
@@ -454,7 +456,7 @@ itemedit:
     description:
       - '&6&lSets food property of the item'
       - ''
-      - '&bN.B. you drinkable items cannot be eaten'
+      - '&bN.B. your drinkable items cannot be eaten'
       - '&bTip: type &e/ie food&b for more info'
     params: '[...]'
     clear:
@@ -612,6 +614,125 @@ itemedit:
       - '&band makes the item fire-resistant.'
       - '&bValues depend on the armor type (helmet, chestplate, etc).'
     params: ''
+  equipment:
+    wrong-boolean: '&4[&cItemEdit&4] &cWrong Boolean Value! &4[&6hover here&4]'
+    wrong-sound: '&4[&cItemEdit&4] &cWrong Sound Value! &4[&6hover here&4]'
+    wrong-slot: '&4[&cItemEdit&4] &cWrong Equipment Value! &4[&6hover here&4]'
+    wrong-entitytype: '&4[&cItemEdit&4] &cWrong EntityType Value! &4[&6hover here&4]'
+    wrong-entitygroup: '&4[&cItemEdit&4] &cWrong EntityGroup Value! &4[&6hover here&4]'
+    description:
+      - '&6&lSets equipment property of the item'
+      - ''
+      - '&bTip: type &e/ie equipment&b for more info'
+    params: '<slot/...>'
+    help-header: '&9&lItemEdit Equipment - Help'
+    model:
+      description:
+        - '&6&lSets texture model'
+        - ''
+        - '&e[key] &bNamespaced ID of the equipment model to use when equipped'
+      params: "[key]"
+      feedback: "&aEquipment model is now &e%key%"
+      feedback-reset: "&aEquipment model has been reset"
+    slot:
+      description:
+        - '&6&lSets equippable slot'
+        - ''
+        - '&e<slot> &bwhere the item can be equipped'
+      params: "<slot>"
+      feedback: "&aEquipment Slot is now &e%value%"
+    swappable:
+      description:
+        - '&6&lSets the item swappable'
+        - ''
+        - '&e[true/false] &btrue for the item to be swappable'
+      params: "[true/false]"
+      feedback: "&aSwappable property is now &e%value%"
+    allowedentities:
+      invalid-type: '&4[&cItemEdit&4] &cThe value &6%value% &cis neither a valid entity nor a valid group of entities'
+      description:
+        - '&6&lSets entity types allowed to wear this equipment'
+        - ''
+        - '&e[entity] &bwhich entity type'
+        - '&e[group] &bwhich entity group'
+        - ''
+        - '&bAll selected types are added'
+      params: "[entity/group] [entity/group] ..."
+      feedback: "&aAllowed entity types are now: &e%value%"
+      feedback-reset: "&aAllowed entity types have been reset"
+    equipsound:
+      description:
+        - '&6&lSets equipping sound'
+        - ''
+        - '&e[sound] &bwhich sound should be made'
+      params: "[sound]"
+      feedback: "&aEquip sound property is now &e%value%"
+      feedback-reset: "&aEquip sound property has been reset to default"
+    equiponinteract:
+      description:
+        - '&6&lSets equip on interaction'
+        - ''
+        - '&e[true/false] &btrue to equip with interaction'
+      params: "[true/false]"
+      feedback: "&aEquip on interact property is now &e%value%"
+    shearsound:
+      description:
+        - '&6&lSets sound when item is removed by shear'
+        - ''
+        - '&e[sound] &bwhich sound should be made'
+        - '&bwhen it''s removed by shear, like pumpkin'
+        - '&bfor snowman'
+      params: "[sound]"
+      feedback: "&aShear sound is now &e%value%"
+      feedback-reset: "&aShear sound property has been reset to default"
+    canshear:
+      unsupported-version: '&4[&cItemEdit&4] &cYou server version (&6%value%&c) doesn''t support this feature'
+      description:
+        - '&6&lSets equip on interaction'
+        - ''
+        - '&e[true/false] &btrue be able to shear the'
+        - '&bequipment from and entity, like pumpkin'
+        - '&bfor snowman'
+      params: "[true/false]"
+      feedback: "&aCan shear property is now &e%value%"
+    dispensable:
+      description:
+        - '&6&lSets dispensable'
+        - ''
+        - '&e[true/false] &btrue to equip with dispenser'
+      params: "[true/false]"
+      feedback: "&aDispensable property is now &e%value%"
+    damageonhurt:
+      description:
+        - '&6&lSets damageable'
+        - ''
+        - '&e[true/false] &btrue to reduce durability with damage'
+        - ''
+        - '&bN.B. only item with max stack size of 1 can be damaged'
+        - '&b  use &e/ie maxstacksize 1'
+        - '&bTip: remember to set item max durability with'
+        - '  &e/ie maxdurability <amount>'
+      params: "[true/false]"
+      feedback: "&aDamage on hurt property is now &e%value%"
+      warning-maxstacksize: '&4[&cItemEdit&4] &cItem max stack size must be &61 &cto be damageable &4[&6click to fix&4]'
+    cameraoverlay:
+      description:
+      - '&6&lSets camera overlay'
+      - ''
+      - '&e[namespacedkey] &bwhich overlay you want'
+      - '&bOverlays are set on texturepacks, the only vanilla'
+      - '&boverlay is the minecraft:misc/pumpkinblur'
+      params: "[namespacedkey]"
+      feedback: "&aCamera overlay has been updated"
+      feedback-reset: "&aCamera overlay has been removed"
+      invalid-namespacedkey: "&cNamespacedkey &6%value% &c is invalid"
+    clear:
+      description:
+        - '&6&lCompletely remove equipment property on item'
+        - ''
+        - '&bOr restore defaults if item is a vanilla equipment'
+      params: ""
+      feedback: "&aEquipment properties have been reset to default"
 serveritem:
   help-header: '&9&lServerItem - Help'
   give:

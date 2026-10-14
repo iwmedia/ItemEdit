@@ -20,14 +20,13 @@ public final class ReflectionUtils {
     /**
      * Gets a declared field from a class, including private fields.
      *
-     * @param clazz the class to search
+     * @param clazz     the class to search
      * @param fieldName the name of the field
      * @return the Field object
      * @throws RuntimeException if the field is not found
      */
     @NotNull
-    public static Field getDeclaredField(@NotNull Class<?> clazz,
-                                         @NotNull String fieldName) {
+    public static Field getDeclaredField(@NotNull Class<?> clazz, @NotNull String fieldName) {
         try {
             Field field = clazz.getDeclaredField(fieldName);
             field.setAccessible(true);
@@ -55,8 +54,8 @@ public final class ReflectionUtils {
     /**
      * Gets a declared method from a class, including private methods.
      *
-     * @param clazz the class to search
-     * @param methodName the name of the method
+     * @param clazz          the class to search
+     * @param methodName     the name of the method
      * @param parameterTypes the parameter types of the method (optional)
      * @return the Method object
      * @throws RuntimeException if the method is not found
@@ -77,8 +76,8 @@ public final class ReflectionUtils {
     /**
      * Gets a method from a class, including private methods.
      *
-     * @param clazz the class to search
-     * @param methodName the name of the method
+     * @param clazz          the class to search
+     * @param methodName     the name of the method
      * @param parameterTypes the parameter types of the method (optional)
      * @return the Method object
      * @throws RuntimeException if the method is not found
@@ -97,9 +96,9 @@ public final class ReflectionUtils {
     /**
      * Invokes a given Method on a specified object with provided arguments.
      *
-     * @param obj the object on which to invoke the method (null for static methods)
+     * @param obj    the object on which to invoke the method (null for static methods)
      * @param method the Method object to invoke
-     * @param args the arguments to pass to the method
+     * @param args   the arguments to pass to the method
      * @return the result of the method invocation, or null if the method is void
      * @throws RuntimeException if the method cannot be invoked
      */
@@ -118,7 +117,7 @@ public final class ReflectionUtils {
     /**
      * Invokes a method on an object, including private methods.
      *
-     * @param obj the object to invoke the method on
+     * @param obj        the object to invoke the method on
      * @param methodName the name of the method
      * @return the result of the method invocation
      * @throws RuntimeException if the method cannot be invoked
@@ -127,6 +126,7 @@ public final class ReflectionUtils {
     public static Object invokeMethod(@NotNull Object obj, @NotNull String methodName) {
         try {
             Method method = obj.getClass().getMethod(methodName);
+            method.setAccessible(true);
             return method.invoke(obj);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -136,7 +136,7 @@ public final class ReflectionUtils {
     /**
      * Invokes a method on an object, including private methods.
      *
-     * @param obj the object to invoke the method on
+     * @param obj        the object to invoke the method on
      * @param methodName the name of the method
      * @return the result of the method invocation
      * @throws RuntimeException if the method cannot be invoked
@@ -153,7 +153,7 @@ public final class ReflectionUtils {
     /**
      * Invokes a method on an object, including private methods.
      *
-     * @param obj the object to invoke the method on
+     * @param obj        the object to invoke the method on
      * @param methodName the name of the method
      * @return the result of the method invocation
      * @throws RuntimeException if the method cannot be invoked
@@ -170,7 +170,7 @@ public final class ReflectionUtils {
     /**
      * Invokes a method on an object, including private methods.
      *
-     * @param obj the object to invoke the method on
+     * @param obj        the object to invoke the method on
      * @param methodName the name of the method
      * @return the result of the method invocation
      * @throws RuntimeException if the method cannot be invoked
@@ -188,7 +188,7 @@ public final class ReflectionUtils {
     /**
      * Invokes a method on an object, including private methods.
      *
-     * @param obj the object to invoke the method on
+     * @param obj        the object to invoke the method on
      * @param methodName the name of the method
      * @return the result of the method invocation
      * @throws RuntimeException if the method cannot be invoked
@@ -207,10 +207,10 @@ public final class ReflectionUtils {
     /**
      * Invokes a method on an object, including private methods.
      *
-     * @param obj the object to invoke the method on
-     * @param methodName the name of the method
+     * @param obj            the object to invoke the method on
+     * @param methodName     the name of the method
      * @param parameterTypes the parameter types of the method
-     * @param args the arguments to pass to the method
+     * @param args           the arguments to pass to the method
      * @return the result of the method invocation
      * @throws RuntimeException if the method cannot be invoked
      */
@@ -220,6 +220,7 @@ public final class ReflectionUtils {
                                       Object... args) {
         try {
             Method method = obj.getClass().getMethod(methodName, parameterTypes);
+            method.setAccessible(true);
             return method.invoke(obj, args);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -229,22 +230,22 @@ public final class ReflectionUtils {
     /**
      * Invokes a static method of a given class.
      *
-     * @param clazz  the fully qualified name of the class.
+     * @param clazz      the fully qualified name of the class.
      * @param methodName the name of the method to invoke.
      * @param args       the arguments to pass to the method.
      * @return the result of the method invocation, or null if the method is void.
      * @throws RuntimeException if the method or class cannot be found or invoked.
      */
     @Nullable
-    public static Object invokeStaticMethod(@NotNull Class<?> clazz,
-                                            @NotNull String methodName,
-                                            Object... args) {
+    public static Object invokeStaticMethod(@NotNull Class<?> clazz, @NotNull String methodName, Object... args) {
         try {
             Class<?>[] argTypes = new Class[args.length];
             for (int i = 0; i < args.length; i++) {
                 argTypes[i] = args[i].getClass();
             }
-            return clazz.getMethod(methodName, argTypes).invoke(null, args);
+            Method method = clazz.getMethod(methodName, argTypes);
+            method.setAccessible(true);
+            return method.invoke(null, args);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -253,9 +254,9 @@ public final class ReflectionUtils {
     /**
      * Sets the value of a field on an object, including private fields.
      *
-     * @param obj the object to modify
+     * @param obj       the object to modify
      * @param fieldName the name of the field
-     * @param value the new value to set
+     * @param value     the new value to set
      * @throws RuntimeException if the field cannot be set
      */
     public static void setFieldValue(@NotNull Object obj,
@@ -263,6 +264,7 @@ public final class ReflectionUtils {
                                      @Nullable Object value) {
         try {
             Field field = getDeclaredField(obj.getClass(), fieldName);
+            field.setAccessible(true);
             field.set(obj, value);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -272,7 +274,7 @@ public final class ReflectionUtils {
     /**
      * Gets the value of a field from an object, including private fields.
      *
-     * @param obj the object to retrieve the value from
+     * @param obj       the object to retrieve the value from
      * @param fieldName the name of the field
      * @return the value of the field
      * @throws RuntimeException if the field cannot be accessed
@@ -282,6 +284,7 @@ public final class ReflectionUtils {
                                        @NotNull String fieldName) {
         try {
             Field field = getDeclaredField(obj.getClass(), fieldName);
+            field.setAccessible(true);
             return field.get(obj);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -299,6 +302,7 @@ public final class ReflectionUtils {
     public static <T> T invokeConstructor(@NotNull Class<T> clazz) {
         try {
             Constructor<T> constructor = clazz.getConstructor();
+            constructor.setAccessible(true);
             return constructor.newInstance();
         } catch (Exception e) {
             throw new RuntimeException("Failed to invoke default constructor", e);
@@ -393,8 +397,8 @@ public final class ReflectionUtils {
     /**
      * Creates an instance of the specified class using a parameterized constructor.
      *
-     * @param <T>       The type of the class.
-     * @param clazz     The Class object representing the class to instantiate.
+     * @param <T>        The type of the class.
+     * @param clazz      The Class object representing the class to instantiate.
      * @param paramTypes An array of Class objects representing the parameter types of the constructor.
      * @param params     An array of Objects representing the arguments to pass to the constructor.
      * @return An instance of the specified class.
@@ -405,6 +409,7 @@ public final class ReflectionUtils {
                                           @Nullable Object[] params) {
         try {
             Constructor<T> constructor = clazz.getConstructor(paramTypes);
+            constructor.setAccessible(true);
             return constructor.newInstance(params);
         } catch (Exception e) {
             throw new RuntimeException("Failed to invoke parameterized constructor", e);
@@ -414,7 +419,7 @@ public final class ReflectionUtils {
     /**
      * Checks if a class is annotated with a specific annotation.
      *
-     * @param clazz the class to check
+     * @param clazz           the class to check
      * @param annotationClass the annotation class
      * @return true if the class is annotated with the annotation, false otherwise
      */

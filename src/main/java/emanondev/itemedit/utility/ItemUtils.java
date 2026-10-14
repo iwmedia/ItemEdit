@@ -1,5 +1,6 @@
 package emanondev.itemedit.utility;
 
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
@@ -10,6 +11,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +59,7 @@ public final class ItemUtils {
      * @param item   the {@link ItemStack} to set in the player's main hand.
      */
     @SuppressWarnings("deprecation")
-    public static void setHandItem(@NotNull Player player, ItemStack item) {
+    public static void setHandItem(@NotNull Player player, @Nullable ItemStack item) {
         player.getInventory().setItemInHand(item);
     }
 
@@ -65,6 +69,7 @@ public final class ItemUtils {
      * @param item the {@link ItemStack} to check.
      * @return {@code true} if the item is null or its type is {@link Material#AIR}, {@code false} otherwise.
      */
+    @Contract("null -> true")
     public static boolean isAirOrNull(@Nullable ItemStack item) {
         return item == null || item.getType() == Material.AIR;
     }
@@ -87,10 +92,12 @@ public final class ItemUtils {
      * @return {@code true} if the meta has the unbreakable tag, {@code false} otherwise.
      */
     public static boolean isUnbreakable(@Nullable ItemMeta meta) {
-        if (meta == null)
+        if (meta == null) {
             return false;
-        if (VersionUtils.isVersionAfter(1, 11))
+        }
+        if (VersionUtils.isVersionAfter(1, 11)) {
             return meta.isUnbreakable();
+        }
 
         // For older versions, use reflection to access the unbreakable property.
         Object spigotMeta = Objects.requireNonNull(ReflectionUtils.invokeMethod(meta, "spigot"));
@@ -121,8 +128,9 @@ public final class ItemUtils {
      */
     public static void setUnbreakable(@Nullable ItemMeta meta,
                                       boolean value) {
-        if (meta == null)
+        if (meta == null) {
             return;
+        }
         if (VersionUtils.isVersionAfter(1, 11)) {
             meta.setUnbreakable(value);
             return;
@@ -147,17 +155,18 @@ public final class ItemUtils {
                                                             @Nullable String slot) {
         if (VersionUtils.isVersionAfter(1, 20, 6)) {
             EquipmentSlotGroup group;
-            if (slot == null)
+            if (slot == null) {
                 group = EquipmentSlotGroup.ANY;
-            else {
+            } else {
                 group = EquipmentSlotGroup.getByName(slot.toUpperCase(Locale.ENGLISH));
                 if (group == null) {
                     group = EquipmentSlot.valueOf(slot.toUpperCase(Locale.ENGLISH)).getGroup();
                 }
             }
-            if (VersionUtils.isVersionAfter(1, 21, 2))
+            if (VersionUtils.isVersionAfter(1, 21, 2)) {
                 return new AttributeModifier(Objects.requireNonNull(NamespacedKey.fromString(UUID.randomUUID().toString())),
                         amount, operation, group);
+            }
             UUID uuid = UUID.randomUUID();
             return ReflectionUtils.invokeConstructor(AttributeModifier.class,
                     UUID.class, uuid,
@@ -221,4 +230,56 @@ public final class ItemUtils {
         }
         return list.toArray(new PatternType[0]);
     }
+
+    public static boolean isItem(@NotNull Material material) {
+        if (VersionUtils.isVersionUpTo(1, 12, 99)) {
+            return true; //limited support
+        }
+        if (material.name().startsWith("LEGACY_")) {
+            return false;
+        }
+        return material.isItem();
+    }
+
+
+    public static ItemMeta setColor(@NotNull ItemMeta meta, @NotNull Color color) {
+        if ((meta instanceof PotionMeta)) {
+            ((PotionMeta) meta).setColor(color);
+            return meta;
+        }
+        try {
+            if ((meta instanceof LeatherArmorMeta)) {
+                LeatherArmorMeta leatherArmorMeta = ((LeatherArmorMeta) meta);
+                leatherArmorMeta.setColor(color);
+                return meta;
+            }
+        } catch (Throwable ignored) { //might be old game version without LeatherArmorMeta
+        }
+        return meta;
+    }
+
+    public static Color getColor(@NotNull ItemMeta meta) {
+        if ((meta instanceof PotionMeta)) {
+            PotionMeta potionMeta = ((PotionMeta) meta);
+            return potionMeta.getColor() == null ? toColor(65, 85, 255) : potionMeta.getColor();
+        }
+        try {
+            if ((meta instanceof LeatherArmorMeta)) {
+                LeatherArmorMeta leatherArmorMeta = ((LeatherArmorMeta) meta);
+                leatherArmorMeta.getColor();
+                return leatherArmorMeta.getColor();
+            }
+        } catch (Throwable ignored) { //might be old game version without LeatherArmorMeta
+        }
+        return toColor(0, 0, 0);
+    }
+
+    private static Color toColor(int red, int green, int blue) {
+        return Color.fromRGB(limit(red), limit(green), limit(blue));
+    }
+
+    private static int limit(int color) {
+        return Math.max(0, Math.min(255, color));
+    }
+
 }

@@ -14,6 +14,8 @@ import emanondev.itemedit.storage.mongo.MongoStorage;
 import emanondev.itemedit.storage.yaml.YmlPlayerStorage;
 import emanondev.itemedit.storage.yaml.YmlServerStorage;
 import emanondev.itemedit.utility.InventoryUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -23,13 +25,14 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.function.Predicate;
 
+@Slf4j
 public class ItemEdit extends APlugin {
 
-    private final static int PROJECT_ID = 40993;
-    private static final int BSTATS_PLUGIN_ID = 15076;
     private static ItemEdit plugin = null;
-    private PlayerStorage pStorage;
-    private ServerStorage sStorage;
+    @Getter
+    private PlayerStorage playerStorage;
+    @Getter
+    private ServerStorage serverStorage;
     @Nullable
     private MongoStorage mongoStorage;
 
@@ -49,9 +52,68 @@ public class ItemEdit extends APlugin {
     }
 
     @Override
+    public void enable() {
+        if (Util.hasMiniMessageAPI()) {
+            ItemEdit.get().log("Hooking into <rainbow>MiniMessageAPI</rainbow><white> see https://webui.advntr.dev/");
+        }
+        Aliases.reload();
+        Bukkit.getPluginManager().registerEvents(new GuiHandler(), this);
+
+        StorageType storageType = getStorageType();
+        log("Selected Storage Type: " + storageType.name());
+        switch (storageType) {
+            case YAML:
+                this.playerStorage = new YmlPlayerStorage();
+                this.serverStorage = new YmlServerStorage();
+                break;
+            case MONGODB: {
+                String connectionString = this.getConfig().load("storage.mongodb.uri", "mongodb://127.0.0.1:27017", String.class);
+                String database = this.getConfig().load("storage.mongodb.database", "itemedit", String.class);
+                String collectionPrefix = this.getConfig().load("storage.mongodb.collection_prefix", "itemedit-", String.class);
+
+                this.mongoStorage = new MongoStorage(connectionString, database, collectionPrefix);
+                this.playerStorage = new MongoPlayerStorage(this.mongoStorage, this.getLogger());
+                this.serverStorage = new MongoServerStorage(this.mongoStorage);
+                break;
+            }
+            default: {
+                this.enableWithError("Selected storage type is invalid, please fix it: open plugins/ItemEdit/config.yml and set storage: -> type: 'YAML' then restart the server");
+                return;
+            }
+        }
+
+        initCommands();
+        initHooks();
+
+    }
+
+    @Override
+    public void disable() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (InventoryUtils.getTopInventory(p).getHolder() instanceof Gui) {
+                p.closeInventory();
+            }
+        }
+
+        if (this.mongoStorage != null) {
+            this.mongoStorage.close();
+        }
+    }
+
+    @Override
+    public void reload() {
+        Aliases.reload();
+        ItemEditCommand.get().reload();
+        ItemStorageCommand.get().reload();
+        ServerItemCommand.get().reload();
+        getPlayerStorage().reload();
+        getServerStorage().reload();
+    }
+
+    @Override
     protected void updateConfigurations(int oldConfigVersion) {
-        final YMLConfig conf = this.getConfig();
-        final YMLConfig aliases = this.getConfig("aliases.yml");
+        YMLConfig conf = this.getConfig();
+        YMLConfig aliases = this.getConfig("aliases.yml");
         if (oldConfigVersion <= 3) {
             conf.set("check-updates", true);
         }
@@ -62,11 +124,13 @@ public class ItemEdit extends APlugin {
             conf.set("storage.mongodb.collection_prefix", "itemedit");
 
             for (String name : new String[]{"quartz", "redstone", "emerald", "copper", "iron", "lapis",
-                    "diamond", "gold", "netherite", "amethyst"})
+                    "diamond", "gold", "netherite", "amethyst"}) {
                 aliases.set("trim_material.minecraft:" + name.toLowerCase(Locale.ENGLISH), name.toLowerCase(Locale.ENGLISH));
+            }
             for (String name : new String[]{"rib", "snout", "wild", "coast", "spire", "wayfinder", "shaper", "tide",
-                    "silence", "vex", "sentry", "dune", "raiser", "eye", "host", "ward"})
+                    "silence", "vex", "sentry", "dune", "raiser", "eye", "host", "ward"}) {
                 aliases.set("trim_pattern.minecraft:" + name.toLowerCase(Locale.ENGLISH), name.toLowerCase(Locale.ENGLISH));
+            }
         }
 
         if (oldConfigVersion <= 6) {
@@ -98,59 +162,13 @@ public class ItemEdit extends APlugin {
                 || p.hasPermission("itemedit.itemedit.color");
     }
 
-    @Override
-    public Integer getProjectId() {
-        return PROJECT_ID;
-    }
-
-    @Override
-    public Integer getMetricsId() {
-        return BSTATS_PLUGIN_ID;
-    }
-
-    @Override
-    public void enable() {
-        if (Util.hasMiniMessageAPI()) {
-            ItemEdit.get().log("Hooking into <rainbow>MiniMessageAPI</rainbow><white> see https://webui.advntr.dev/");
-        }
-        Aliases.reload();
-        Bukkit.getPluginManager().registerEvents(new GuiHandler(), this);
-
-        StorageType storageType = getStorageType();
-        log("Selected Storage Type: " + storageType.name());
-        switch (storageType) {
-            case YAML:
-                pStorage = new YmlPlayerStorage();
-                sStorage = new YmlServerStorage();
-                break;
-            case MONGODB: {
-                String connectionString = this.getConfig().load("storage.mongodb.uri", "mongodb://127.0.0.1:27017", String.class);
-                String database = this.getConfig().load("storage.mongodb.database", "itemedit", String.class);
-                String collectionPrefix = this.getConfig().load("storage.mongodb.collection_prefix", "itemedit-", String.class);
-
-                this.mongoStorage = new MongoStorage(connectionString, database, collectionPrefix);
-                this.pStorage = new MongoPlayerStorage(this.mongoStorage, this.getLogger());
-                this.sStorage = new MongoServerStorage(this.mongoStorage);
-                break;
-            }
-            default: {
-                this.enableWithError("Selected storage type is invalid, please fix it: open plugins/ItemEdit/config.yml and set storage: -> type: 'YAML' then restart the server");
-                return;
-            }
-        }
-
-        initCommands();
-        initHooks();
-
-    }
-
     private void initHooks() {
         if (Hooks.isPAPIEnabled()) {
             try {
                 this.log("Hooking into PlaceHolderAPI");
-                new PlaceHolders().register();
+                new Placeholders().register();
             } catch (Throwable t) {
-                t.printStackTrace();
+                log.warn(t.getMessage(), t);
             }
         }
         if (Hooks.isShopGuiPlusEnabled()) {
@@ -158,7 +176,7 @@ public class ItemEdit extends APlugin {
                 this.log("Hooking into ShopGuiPlus");
                 new ShopGuiPlusItemProvider().register();
             } catch (Throwable t) {
-                t.printStackTrace();
+                log.warn(t.getMessage(), t);
             }
         }
         if (Hooks.isMythicMobsEnabled()) {
@@ -166,7 +184,7 @@ public class ItemEdit extends APlugin {
                 this.log("Hooking into MythicMobs");
                 registerListener(new MythicMobsListener());
             } catch (Throwable t) {
-                t.printStackTrace();
+                log.warn(t.getMessage(), t);
             }
         }
         if (Hooks.isItemBridgeEnabled()) {
@@ -174,7 +192,7 @@ public class ItemEdit extends APlugin {
                 this.log("Hooking into ItemBridge");
                 ItemBridgeItemProvider.setup(this);
             } catch (Throwable t) {
-                t.printStackTrace();
+                log.warn(t.getMessage(), t);
             }
         }
         if (Hooks.isDungeonMMOEnabled()) {
@@ -182,7 +200,7 @@ public class ItemEdit extends APlugin {
                 this.log("Hooking into DungeonMMO");
                 DungeonMMOItemProvider.register();
             } catch (Throwable t) {
-                t.printStackTrace();
+                log.warn(t.getMessage(), t);
             }
         }
     }
@@ -196,32 +214,4 @@ public class ItemEdit extends APlugin {
         registerCommand("itemeditimport", new ItemEditImportCommand(), null);
         //TODO add a command to change storage type (aka conversion)
     }
-
-    @Override
-    public void disable() {
-        for (Player p : Bukkit.getOnlinePlayers())
-            if (InventoryUtils.getTopInventory(p).getHolder() instanceof Gui)
-                p.closeInventory();
-
-        if (this.mongoStorage != null) this.mongoStorage.close();
-    }
-
-    @Override
-    public void reload() {
-        Aliases.reload();
-        ItemEditCommand.get().reload();
-        ItemStorageCommand.get().reload();
-        ServerItemCommand.get().reload();
-        getPlayerStorage().reload();
-        getServerStorage().reload();
-    }
-
-    public PlayerStorage getPlayerStorage() {
-        return pStorage;
-    }
-
-    public ServerStorage getServerStorage() {
-        return sStorage;
-    }
-
 }

@@ -7,18 +7,21 @@ import emanondev.itemedit.command.ServerItemCommand;
 import emanondev.itemedit.command.SubCmd;
 import emanondev.itemedit.utility.CompleteUtility;
 import emanondev.itemedit.utility.SchedulerUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 public class Drop extends SubCmd {
 
     public Drop(ServerItemCommand cmd) {
@@ -26,15 +29,16 @@ public class Drop extends SubCmd {
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         try {
             // <id> <amount> <world> <x> <y> <z>
             if (args.length != 7) {
                 throw new IllegalArgumentException("Wrong param number");
             }
             int amount = Integer.parseInt(args[2]);
-            if (amount < 1 || amount > 2304)
+            if (amount < 1 || amount > 2304) {
                 throw new IllegalArgumentException("Wrong amount number");
+            }
 
             ItemStack item = ItemEdit.get().getServerStorage().getItem(args[1]);
             World world = Bukkit.getWorld(args[3]);
@@ -57,21 +61,24 @@ public class Drop extends SubCmd {
                         "%nick%", ItemEdit.get().getServerStorage().getNick(args[1]), "%amount%",
                         String.valueOf(amount), "%world%", world.getName(), "%x%", args[4], "%y%", args[5], "%z%",
                         args[6]);
-                if (ItemEdit.get().getConfig().loadBoolean("log.console", true))
+                if (ItemEdit.get().getConfig().loadBoolean("log.console", true)) {
                     Util.sendMessage(Bukkit.getConsoleSender(), msg);
-                if (ItemEdit.get().getConfig().loadBoolean("log.file", true))
+                }
+                if (ItemEdit.get().getConfig().loadBoolean("log.file", true)) {
                     Util.logToFile(msg);
+                }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             onFail(sender, alias);
         }
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player))
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
             return Collections.emptyList();
+        }
         switch (args.length) {
             case 2:
                 return CompleteUtility.complete(args[1], ItemEdit.get().getServerStorage().getIds());
@@ -79,8 +86,9 @@ public class Drop extends SubCmd {
                 return CompleteUtility.complete(args[2], Arrays.asList("1", "10", "64", "576", "2304"));
             case 4: {
                 List<String> l = new ArrayList<>();
-                for (World w : Bukkit.getWorlds())
+                for (World w : Bukkit.getWorlds()) {
                     l.add(w.getName());
+                }
                 return CompleteUtility.complete(args[3], l);
             }
             case 5: {

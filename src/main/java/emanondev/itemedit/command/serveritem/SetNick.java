@@ -6,6 +6,7 @@ import emanondev.itemedit.command.SubCmd;
 import emanondev.itemedit.utility.CompleteUtility;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,17 +18,19 @@ public class SetNick extends SubCmd {
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
         try {
-            if (args.length < 2)
+            if (args.length < 2) {
                 throw new IllegalArgumentException("Wrong param number");
-            if (args.length == 2)
+            }
+            if (args.length == 2) {
                 ItemEdit.get().getServerStorage().setNick(args[1], null);
-            else {
+            } else {
                 StringBuilder builder = new StringBuilder(args[2]);
-                for (int i = 3; i < args.length; i++)
+                for (int i = 3; i < args.length; i++) {
                     builder.append(" ").append(args[i]);
+                }
                 ItemEdit.get().getServerStorage().setNick(args[1], builder.toString());
             }
             sendLanguageString("success", null, p, "%id%", args[1].toLowerCase(),
@@ -38,11 +41,13 @@ public class SetNick extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (!(sender instanceof Player))
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        if (!(sender instanceof Player)) {
             return Collections.emptyList();
-        if (args.length == 2)
+        }
+        if (args.length == 2) {
             return CompleteUtility.complete(args[1], ItemEdit.get().getServerStorage().getIds());
+        }
         return Collections.emptyList();
     }
 }
