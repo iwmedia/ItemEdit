@@ -614,6 +614,18 @@ itemedit:
       - '&band makes the item fire-resistant.'
       - '&bValues depend on the armor type (helmet, chestplate, etc).'
     params: ''
+  gradient:
+    no-text: '&4[&cItemEdit&4] &cItem has no display name or lore'
+    name-prefix: '&9Name: &f'
+    lore-prefix: '&9Lore %line%: &f'
+    hover: '&eClick to copy'
+    description:
+      - '&6&lShows the colors of name and lore as MiniMessage'
+      - ''
+      - '&bPrints the display name and every lore line,'
+      - '&bgradients are calculated back from the colors.'
+      - '&bClick a line to copy it.'
+    params: ''
   equipment:
     wrong-boolean: '&4[&cItemEdit&4] &cWrong Boolean Value! &4[&6hover here&4]'
     wrong-sound: '&4[&cItemEdit&4] &cWrong Sound Value! &4[&6hover here&4]'

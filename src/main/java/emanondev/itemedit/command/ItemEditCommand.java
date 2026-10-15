@@ -17,6 +17,7 @@ public class ItemEditCommand extends AbstractCommand {
         this.registerSubCommand(() -> new Hide(this));
         this.registerSubCommand(() -> new HideAll(this));
         this.registerSubCommand(() -> new Netherite(this));
+        this.registerSubCommand(() -> new Gradient(this));
         this.registerSubCommand(() -> new HideToolTip(this), VersionUtils.isVersionAfter(1, 20, 5));
         this.registerSubCommand(() -> new Unbreakable(this));
         this.registerSubCommand(() -> new Equipment(this), VersionUtils.isVersionAfter(1, 21, 2)); // 1.20+
