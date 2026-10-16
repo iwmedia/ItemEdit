@@ -613,6 +613,18 @@ itemedit:
       - '&bund macht das Item feuerresistent.'
       - '&bDie Werte hängen vom Rüstungstyp ab (Helm, Brustplatte, etc.).'
     params: ''
+  gradient:
+    no-text: '&4[&cItemEdit&4] &cDas Item hat weder Namen noch Lore'
+    name-prefix: '&9Name: &f'
+    lore-prefix: '&9Lore %line%: &f'
+    hover: '&eKlicken zum Kopieren'
+    description:
+      - '&6&lZeigt die Farben von Name und Lore als MiniMessage'
+      - ''
+      - '&bGibt den Namen und jede Lorezeile einzeln aus,'
+      - '&bVerläufe werden aus den Farben zurückgerechnet.'
+      - '&bKlick auf eine Zeile kopiert sie.'
+    params: ''
   equipment:
     wrong-boolean: '&4[&cItemEdit&4] &cUngültiger Boolean-Wert! &4[&6hier hovern&4]'
     wrong-sound: '&4[&cItemEdit&4] &cUngültiger Sound-Wert! &4[&6hier hovern&4]'
