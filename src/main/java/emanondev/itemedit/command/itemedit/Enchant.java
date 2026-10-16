@@ -4,17 +4,20 @@ import emanondev.itemedit.aliases.Aliases;
 import emanondev.itemedit.command.ItemEditCommand;
 import emanondev.itemedit.command.SubCmd;
 import emanondev.itemedit.utility.CompleteUtility;
+import emanondev.itemedit.utility.ItemUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Enchant extends SubCmd {
+
+    private final Map<UUID, Map<Enchantment, Integer>> copies = new HashMap<>();
+
     public Enchant(ItemEditCommand cmd) {
         super("enchant", cmd, true, true);
     }
@@ -27,11 +30,33 @@ public class Enchant extends SubCmd {
             if (args.length != 2 && args.length != 3) {
                 throw new IllegalArgumentException("Wrong argument Number");
             }
+
+            if (args.length == 2 && args[1].equalsIgnoreCase("-clear")) {
+                item.removeEnchantments();
+                //TODO feedback
+                this.updateView(p);
+                return;
+            }
+
+            if (args.length == 2 && args[1].equalsIgnoreCase("-copy")) {
+                this.copies.put(p.getUniqueId(), item.getEnchantments());
+                //TODO feedback
+                this.updateView(p);
+                return;
+            }
+
+            if (args.length == 2 && args[1].equalsIgnoreCase("-paste")) {
+                item.addUnsafeEnchantments(this.copies.get(p.getUniqueId()));
+                //TODO feedback
+                this.updateView(p);
+                return;
+            }
+
             int lv = 1;
             Enchantment ench = Aliases.ENCHANT.convertAlias(args[1]);
             if (ench == null) {
-                onWrongAlias("wrong-enchant", p, Aliases.ENCHANT);
-                onFail(p, alias);
+                this.onWrongAlias("wrong-enchant", p, Aliases.ENCHANT);
+                this.onFail(p, alias);
                 return;
             }
             if (args.length == 3) {
@@ -45,16 +70,29 @@ public class Enchant extends SubCmd {
                 }
                 item.addUnsafeEnchantment(ench, lv);
             }
-            updateView(p);
+            this.updateView(p);
         } catch (Exception e) {
-            onFail(p, alias);
+            e.printStackTrace();
+            this.onFail(p, alias);
         }
     }
 
     @Override
     public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
         if (args.length == 2) {
-            return CompleteUtility.complete(args[1], Aliases.ENCHANT);
+            List<String> result = new ArrayList<>(Aliases.ENCHANT.getAliases());
+
+            ItemStack item = this.getItemInHand((Player) sender);
+            if (item.hasItemMeta()) {
+                ItemMeta meta = ItemUtils.getMeta(item);
+                if (meta.hasEnchants()) {
+                    result.addAll(Arrays.asList("-clear", "-copy"));
+                }
+            }
+
+            result.add("-paste");
+
+            return CompleteUtility.complete(args[1], result);
         }
         Enchantment ench = Aliases.ENCHANT.convertAlias(args[2]);
         if (ench == null) {
