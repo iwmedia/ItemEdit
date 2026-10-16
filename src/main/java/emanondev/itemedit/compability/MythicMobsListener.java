@@ -13,9 +13,12 @@ import io.lumine.mythic.api.drops.IItemDrop;
 import io.lumine.mythic.api.drops.ILocationDrop;
 import io.lumine.mythic.api.skills.*;
 import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.adapters.BukkitEntity;
+import io.lumine.mythic.bukkit.adapters.BukkitPlayer;
 import io.lumine.mythic.bukkit.adapters.item.ItemComponentBukkitItemStack;
 import io.lumine.mythic.bukkit.events.MythicDropLoadEvent;
 import io.lumine.mythic.bukkit.events.MythicMechanicLoadEvent;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -28,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
+@Slf4j
 public class MythicMobsListener implements Listener {
 
     @EventHandler
@@ -48,15 +52,18 @@ public class MythicMobsListener implements Listener {
                     event.register(new DropServerItemMechanic(event.getConfig()));
                 } catch (IllegalArgumentException ignored) {
                 }
+                break;
             case "giveserveritem":
                 try {
                     event.register(new GiveServerItemMechanic(event.getConfig()));
                 } catch (IllegalArgumentException ignored) {
                 }
+                break;
         }
     }
 }
 
+@Slf4j
 class ServerItemDrop implements IItemDrop, ILocationDrop {
     private final String id;
     private final int amount;
@@ -100,7 +107,7 @@ class ServerItemDrop implements IItemDrop, ILocationDrop {
                 return null;
             return new ItemComponentBukkitItemStack(item);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage(), e);
             return null;
         }
     }
@@ -151,7 +158,12 @@ class DropServerItemMechanic implements ISkillMechanic, ITargetedEntitySkill, IT
             ItemEdit.get().log("&9[&fMythicMobs&9] &fMissing item id on mechanic, use {&eid&f='<your_id>' ....}");
             throw new IllegalArgumentException();
         }
-        if (ItemEdit.get().getServerStorage().getItem(id) == null) {
+        ItemStack value = null;
+        try {
+            value = ItemEdit.get().getServerStorage().getItem(id);
+        } catch (Exception ignored) {
+        }
+        if (value == null) {
             ItemEdit.get().log("&9[&fMythicMobs&9] &fInvalid id, '" + id + "' is not a registered serveritem");
             throw new IllegalArgumentException();
         }
@@ -178,16 +190,18 @@ class DropServerItemMechanic implements ISkillMechanic, ITargetedEntitySkill, IT
 
     @Override
     public SkillResult castAtEntity(SkillMetadata data, AbstractEntity target) {
-        if (Math.random() > chance)
+        if (Math.random() > chance) {
             return SkillResult.CONDITION_FAILED;
-        if (Bukkit.isPrimaryThread())
+        }
+        if (Bukkit.isPrimaryThread()) {
             drop(target.getLocation());
-        else
+        } else {//TODO folia compability
             new BukkitRunnable() {
                 public void run() {
                     drop(target.getLocation());
                 }
             }.runTask(ItemEdit.get());
+        }
         return SkillResult.SUCCESS;
     }
 
@@ -204,16 +218,18 @@ class DropServerItemMechanic implements ISkillMechanic, ITargetedEntitySkill, IT
 
     @Override
     public SkillResult castAtLocation(SkillMetadata data, AbstractLocation location) {
-        if (Math.random() > chance)
+        if (Math.random() > chance) {
             return SkillResult.CONDITION_FAILED;
-        if (Bukkit.isPrimaryThread())
+        }
+        if (Bukkit.isPrimaryThread()) {
             drop(location);
-        else
+        } else { //TODO folia compability
             new BukkitRunnable() {
                 public void run() {
                     drop(location);
                 }
             }.runTask(ItemEdit.get());
+        }
         return SkillResult.SUCCESS;
     }
 }
@@ -231,7 +247,12 @@ class GiveServerItemMechanic implements ISkillMechanic, ITargetedEntitySkill {
             ItemEdit.get().log("&9[&fMythicMobs&9] &fMissing item id on mechanic, use {&eid&f='<your_id>' ....}");
             throw new IllegalArgumentException();
         }
-        if (ItemEdit.get().getServerStorage().getItem(id) == null) {
+        ItemStack value = null;
+        try {
+            value = ItemEdit.get().getServerStorage().getItem(id);
+        } catch (Exception ignored) {
+        }
+        if (value == null) {
             ItemEdit.get().log("&9[&fMythicMobs&9] &fInvalid id, '" + id + "' is not a registered serveritem");
             throw new IllegalArgumentException();
         }
@@ -258,16 +279,38 @@ class GiveServerItemMechanic implements ISkillMechanic, ITargetedEntitySkill {
 
     @Override
     public SkillResult castAtEntity(SkillMetadata data, AbstractEntity target) {
-        if (Math.random() > chance || !(target instanceof AbstractPlayer))
+        if (Math.random() > chance) {
             return SkillResult.CONDITION_FAILED;
-        if (Bukkit.isPrimaryThread())
-            give((AbstractPlayer) target);
-        else
+        }
+
+        AbstractPlayer absPlayer;
+
+        if (!(target instanceof AbstractPlayer)) {
+            // Target is not a BukkitPlayer but a BukkitEntity when using @trigger
+            if (target instanceof BukkitEntity) {
+                BukkitEntity entity = (BukkitEntity) target;
+                if (entity.isPlayer()) {
+                    absPlayer = new BukkitPlayer(entity.getEntityAsPlayer());
+                } else {
+                    // This is not a player entity
+                    return SkillResult.CONDITION_FAILED;
+                }
+            } else {
+                return SkillResult.CONDITION_FAILED;
+            }
+        } else {
+            absPlayer = (AbstractPlayer) target;
+        }
+
+        if (Bukkit.isPrimaryThread()) {
+            give(absPlayer);
+        } else {
             new BukkitRunnable() {
                 public void run() {
-                    give((AbstractPlayer) target);
+                    give(absPlayer);
                 }
             }.runTask(ItemEdit.get());
+        }
         return SkillResult.SUCCESS;
     }
 
@@ -278,7 +321,10 @@ class GiveServerItemMechanic implements ISkillMechanic, ITargetedEntitySkill {
             ItemEdit.get().log("&9[&fMythicMobs&9] &fInvalid id, '" + id + "' is not a registered serveritem");
             return;
         }
-        item.setAmount((int) (amount + Math.random() * diff));
-        InventoryUtils.giveAmount(player, item, amount, InventoryUtils.ExcessMode.DROP_EXCESS);
+
+        int finalAmount = amount + (int) (Math.random() * (diff + 1));
+
+        item.setAmount(finalAmount);
+        InventoryUtils.giveAmount(player, item, finalAmount, InventoryUtils.ExcessMode.DROP_EXCESS);
     }
 }

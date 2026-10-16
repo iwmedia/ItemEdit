@@ -7,6 +7,8 @@ import emanondev.itemedit.command.ServerItemCommand;
 import emanondev.itemedit.storage.ServerStorage;
 import emanondev.itemedit.utility.InventoryUtils;
 import emanondev.itemedit.utility.ItemUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,20 +25,29 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 
+@Slf4j
 public class ShowServerItemsGui implements PagedGui {
     private static final YMLConfig GUI_CONFIG = ItemEdit.get().getConfig();
     private final Inventory inventory;
     private final Player target;
+    /**
+     * -- GETTER --
+     *
+     * @return 1+
+     */
+    @Getter
     private final int page;
     private int rows;
     private ArrayList<String> ids;
     private boolean showItems = true;
 
     public ShowServerItemsGui(Player player, int page) {
-        if (player == null)
+        if (player == null) {
             throw new NullPointerException();
-        if (page < 1)
+        }
+        if (page < 1) {
             throw new NullPointerException();
+        }
 
         this.target = player;
         rows = GUI_CONFIG.loadInteger("gui.serveritems.rows", 6);
@@ -47,8 +58,9 @@ public class ShowServerItemsGui implements PagedGui {
         ArrayList<String> list = new ArrayList<>(storage.getIds());
         Collections.sort(list);
         int maxPages = (list.size()) / (rows * 9) + ((list.size()) % (rows * 9) == 0 ? 0 : 1);
-        if (page > maxPages)
+        if (page > maxPages) {
             page = maxPages;
+        }
         this.page = page;
 
         String title = UtilsString.fix(GUI_CONFIG.loadMessage("gui.serveritems.title", "", false), player, true,
@@ -56,10 +68,12 @@ public class ShowServerItemsGui implements PagedGui {
         this.inventory = Bukkit.createInventory(this, (rows + 1) * 9, title);
         updateInventory();
         this.inventory.setItem(rows * 9 + 4, getPageInfoItem());
-        if (page > 1)
+        if (page > 1) {
             this.inventory.setItem(rows * 9 + 1, getPreviousPageItem());
-        if (page < maxPages)
+        }
+        if (page < maxPages) {
             this.inventory.setItem(rows * 9 + 7, getNextPageItem());
+        }
     }
 
     public void updateInventory() {
@@ -75,7 +89,8 @@ public class ShowServerItemsGui implements PagedGui {
             }
             ItemStack item = storage.getItem(list.get(slot));
             if (item == null) {
-                new NullPointerException("invalid id " + list.get(slot)).printStackTrace();
+                NullPointerException e = new NullPointerException("invalid id " + list.get(slot));
+                    log.warn(e.getMessage(), e);
                 continue;
             }
             if (showItems) {
@@ -97,25 +112,21 @@ public class ShowServerItemsGui implements PagedGui {
                 "gui.serveritems.page-info.description", "%player_name%", target.getName(), "%page%", String.valueOf(page));
     }
 
-    /**
-     * @return 1+
-     */
-    public int getPage() {
-        return this.page;
-    }
-
     @Override
     public void onClose(InventoryCloseEvent event) {
     }
 
     @Override
     public void onClick(InventoryClickEvent event) {
-        if (!event.getWhoClicked().equals(target))
+        if (!event.getWhoClicked().equals(target)) {
             return;
-        if (!inventory.equals(event.getClickedInventory()))
+        }
+        if (!inventory.equals(event.getClickedInventory())) {
             return;
-        if (event.getCurrentItem() == null || event.getCurrentItem().getType() == Material.AIR)
+        }
+        if (ItemUtils.isAirOrNull(event.getCurrentItem())) {
             return;
+        }
         if (event.getSlot() > inventory.getSize() - 9) {
             switch (inventory.getSize() - event.getSlot()) {
                 case 2:
@@ -134,7 +145,7 @@ public class ShowServerItemsGui implements PagedGui {
         String id = ids.get(slot);
         ServerStorage storage = ItemEdit.get().getServerStorage();
         ItemStack item = storage.getItem(id);
-        if (item == null || item.getType() == Material.AIR) {
+        if (ItemUtils.isAirOrNull(item)) {
             updateInventory();
             return;
         }

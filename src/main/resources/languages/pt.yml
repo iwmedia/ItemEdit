@@ -29,7 +29,9 @@ itemedit:
     description:
       - '&b&lDefinir nome do item'
       - ''
-      - '&b&lDica: &bdigite &eclear &bpara reverter o nome para o padrão'
+      - '&b&lDica: &bdigita &e-clear &bpara repor o nome para o padrão'
+      - '&b&lDica: &bdigita &e-copy &bpara copiar o nome'
+      - '&b&lDica: &bdigita &e-paste &bpara colar o valor copiado anteriormente'
     params: '<nome>'
   lore:
     description:
@@ -147,10 +149,10 @@ itemedit:
       - ''
       - '&bFunciona em armaduras de couro, em servidores 1.11+ funciona em'
       - '&bqualquer poção e flechas encantadas também!'
-      - '&e<vermelho> <verde> <azul> &bsão as quantidades de cada cor para combinar'
+      - '&e[vermelho] [verde] [azul] &bsão as quantidades de cada cor para combinar'
       - '&bCada cor é um valor int entre 0 e 255'
       - '&bSe você está confuso, pesquise "seletor de cor RGB"'
-    params: '<vermelho> <verde> <azul>'
+    params: '[vermelho] [verde] [azul]'
   enchant:
     wrong-enchant: '&4[&cItemEdit&4] &cValor de encantamento incorreto! &4[&6clique aqui&4]'
     description:
@@ -197,7 +199,7 @@ itemedit:
         - '&b&lAdicionar/substituir efeito selecionado'
         - ''
         - '&e<efeito> &btipo de efeito'
-        - '&e<duração> &bduração em segundos, &e0 &bpara efeitos instantâneos'
+        - '&e<duração> &bduração em segundos'
         - '&e[nível] &baté 127, por padrão é &e1'
         - '&e[partículas] &bDeve mostrar partículas? &etrue&b/&efalse'
         - '&e[ambiente] &bAs partículas devem ter a bandeira ambiental? &etrue&b/&efalse'
@@ -601,6 +603,125 @@ itemedit:
       - '&b<namespace>:tooltip/<id>_background'
       - '&be <namespace>:tooltip/<id>_frame'
     params: '<style/clear>'
+  equipment:
+    wrong-boolean: '&4[&cItemEdit&4] &cValor booleano incorreto! &4[&6passe o rato aqui&4]'
+    wrong-sound: '&4[&cItemEdit&4] &cValor de som incorreto! &4[&6passe o rato aqui&4]'
+    wrong-slot: '&4[&cItemEdit&4] &cValor de equipamento incorreto! &4[&6passe o rato aqui&4]'
+    wrong-entitytype: '&4[&cItemEdit&4] &cTipo de entidade incorreto! &4[&6passe o rato aqui&4]'
+    wrong-entitygroup: '&4[&cItemEdit&4] &cGrupo de entidades incorreto! &4[&6passe o rato aqui&4]'
+    description:
+      - '&6&lDefine a propriedade de equipamento do item'
+      - ''
+      - '&bDica: digite &e/ie equipment&b para mais informações'
+    params: '<slot/...>'
+    help-header: '&9&lItemEdit Equipamento - Ajuda'
+    model:
+      description:
+        - '&6&lDefine o modelo de textura'
+        - ''
+        - '&e[key] &bID Namespaced do modelo de equipamento a usar quando equipado'
+      params: "[key]"
+      feedback: "&aO modelo do equipamento agora é &e%key%"
+      feedback-reset: "&aO modelo do equipamento foi reposto"
+    slot:
+      description:
+        - '&6&lDefine o slot equipável'
+        - ''
+        - '&e<slot> &bonde o item pode ser equipado'
+      params: "<slot>"
+      feedback: "&aO slot de equipamento agora é &e%value%"
+    swappable:
+      description:
+        - '&6&lDefine se o item é permutável'
+        - ''
+        - '&e[true/false] &btrue para ser permutável'
+      params: "[true/false]"
+      feedback: "&aA propriedade permutável agora é &e%value%"
+    allowedentities:
+      invalid-type: '&4[&cItemEdit&4] &cO valor &6%value% &cnão é uma entidade nem um grupo de entidades válido'
+      description:
+        - '&6&lDefine os tipos de entidade que podem usar este equipamento'
+        - ''
+        - '&e[entidade] &bqual tipo de entidade'
+        - '&e[grupo] &bqual grupo de entidades'
+        - ''
+        - '&bTodos os tipos selecionados são adicionados'
+      params: "[entidade/grupo] [entidade/grupo] ..."
+      feedback: "&aOs tipos de entidade permitidos agora são: &e%value%"
+      feedback-reset: "&aOs tipos de entidade permitidos foram repostos"
+    equipsound:
+      description:
+        - '&6&lDefine o som ao equipar'
+        - ''
+        - '&e[som] &bqual som deve ser reproduzido'
+      params: "[som]"
+      feedback: "&aO som de equipamento agora é &e%value%"
+      feedback-reset: "&aO som de equipamento foi reposto ao padrão"
+    equiponinteract:
+      description:
+        - '&6&lDefine equipar com interação'
+        - ''
+        - '&e[true/false] &btrue para equipar com interação'
+      params: "[true/false]"
+      feedback: "&aA propriedade de equipar ao interagir é agora &e%value%"
+    shearsound:
+      description:
+        - '&6&lDefine o som ao remover com tesoura'
+        - ''
+        - '&e[som] &bqual som deve ser reproduzido'
+        - '&bquando removido com tesoura, como uma abóbora'
+        - '&bnum boneco de neve'
+      params: "[som]"
+      feedback: "&aO som de cortar agora é &e%value%"
+      feedback-reset: "&aO som de cortar foi reposto ao padrão"
+    canshear:
+      unsupported-version: '&4[&cItemEdit&4] &cA versão do servidor (&6%value%&c) não suporta esta funcionalidade'
+      description:
+        - '&6&lDefine se pode ser cortado com tesoura'
+        - ''
+        - '&e[true/false] &btrue para permitir cortar o'
+        - '&bequipamento de uma entidade, como uma abóbora'
+        - '&bou boneco de neve'
+      params: "[true/false]"
+      feedback: "&aA propriedade de cortar agora é &e%value%"
+    dispensable:
+      description:
+        - '&6&lDefine como dispensável'
+        - ''
+        - '&e[true/false] &btrue para equipar com dispensador'
+      params: "[true/false]"
+      feedback: "&aA propriedade dispensável agora é &e%value%"
+    damageonhurt:
+      description:
+        - '&6&lDefine como danificável'
+        - ''
+        - '&e[true/false] &btrue para reduzir durabilidade com dano'
+        - ''
+        - '&bNota: apenas itens com pilha máxima de 1 podem ser danificados'
+        - '&b  use &e/ie maxstacksize 1'
+        - '&bDica: lembre-se de definir a durabilidade máxima com'
+        - '  &e/ie maxdurability <quantidade>'
+      params: "[true/false]"
+      feedback: "&aA propriedade de dano ao sofrer dano agora é &e%value%"
+      warning-maxstacksize: '&4[&cItemEdit&4] &cA pilha máxima deve ser &61 &cpara ser danificável &4[&6clique para corrigir&4]'
+    cameraoverlay:
+      description:
+        - '&6&lDefine a sobreposição da câmara'
+        - ''
+        - '&e[namespacedkey] &bqual sobreposição deseja'
+        - '&bSobreposições são definidas em pacotes de texturas, a única'
+        - '&bsobreposição vanilla é minecraft:misc/pumpkinblur'
+      params: "[namespacedkey]"
+      feedback: "&aA sobreposição de câmara foi atualizada"
+      feedback-reset: "&aA sobreposição de câmara foi removida"
+      invalid-namespacedkey: "&cO namespacedkey &6%value% &c é inválido"
+    clear:
+      description:
+        - '&6&lRemove completamente a propriedade de equipamento do item'
+        - ''
+        - '&bou restaura os padrões se for um item vanilla'
+      params: ""
+      feedback: "&aAs propriedades de equipamento foram repostas aos padrões"
 serveritem:
   help-header: '&9&lServerItem - Ajuda'
   give:

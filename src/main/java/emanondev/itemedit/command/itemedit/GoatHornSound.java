@@ -11,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.MusicInstrumentMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,7 +23,7 @@ public class GoatHornSound extends SubCmd {
     }
 
     @Override
-    public void onCommand(CommandSender sender, String alias, String[] args) {
+    public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player player = (Player) sender;
         ItemStack item = this.getItemInHand(player);
         if (!(item.getItemMeta() instanceof MusicInstrumentMeta)) {
@@ -31,8 +32,9 @@ public class GoatHornSound extends SubCmd {
         }
 
         try {
-            if (args.length != 2)
+            if (args.length != 2) {
                 throw new IllegalArgumentException("Wrong param number");
+            }
             MusicInstrumentMeta meta = (MusicInstrumentMeta) ItemUtils.getMeta(item);
             MusicInstrument type = Aliases.GOAT_HORN_SOUND.convertAlias(args[1]);
             if (type == null) {
@@ -49,9 +51,10 @@ public class GoatHornSound extends SubCmd {
     }
 
     @Override
-    public List<String> onComplete(CommandSender sender, String[] args) {
-        if (args.length == 2)
+    public List<String> onComplete(@NotNull CommandSender sender, String[] args) {
+        if (args.length == 2) {
             return CompleteUtility.complete(args[1], Aliases.GOAT_HORN_SOUND);
+        }
         return Collections.emptyList();
     }
 }
