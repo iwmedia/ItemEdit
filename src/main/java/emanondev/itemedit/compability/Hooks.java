@@ -70,6 +70,7 @@ public class Hooks {
                 }
             }
         } catch (Throwable ignored) {
+            throw new RuntimeException(ignored);
         }
         return null;
     }
