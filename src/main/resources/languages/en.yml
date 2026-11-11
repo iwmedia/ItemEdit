@@ -626,6 +626,25 @@ itemedit:
       - '&bgradients are calculated back from the colors.'
       - '&bClick a line to copy it.'
     params: ''
+  copy:
+    feedback: '&9[&fItemEdit&9] &aName, lore and enchantments copied'
+    nothing: '&4[&cItemEdit&4] &cItem has no name, lore or enchantments!'
+    description:
+      - '&6&lCopy name, lore and enchantments'
+      - ''
+      - '&bPaste with &e/ie paste&b.'
+      - '&bShares the clipboard of &erename -copy&b,'
+      - '&elore copy &band &eenchant -copy&b.'
+    params: 'all'
+  paste:
+    feedback: '&9[&fItemEdit&9] &aName, lore and enchantments pasted'
+    no-copy: '&4[&cItemEdit&4] &cCopy an item first with /ie copy all!'
+    description:
+      - '&6&lPaste copied name, lore and enchantments'
+      - ''
+      - '&bOnly existing values are pasted,'
+      - '&benchantments are added.'
+    params: ''
   equipment:
     wrong-boolean: '&4[&cItemEdit&4] &cWrong Boolean Value! &4[&6hover here&4]'
     wrong-sound: '&4[&cItemEdit&4] &cWrong Sound Value! &4[&6hover here&4]'

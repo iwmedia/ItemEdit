@@ -14,6 +14,8 @@ public class ItemEditCommand extends AbstractCommand {
         this.registerSubCommand(() -> new Rename(this));
         this.registerSubCommand(() -> new Lore(this));
         this.registerSubCommand(() -> new Enchant(this));
+        this.registerSubCommand(() -> new Copy(this));
+        this.registerSubCommand(() -> new Paste(this));
         this.registerSubCommand(() -> new Hide(this));
         this.registerSubCommand(() -> new HideAll(this));
         this.registerSubCommand(() -> new Netherite(this));

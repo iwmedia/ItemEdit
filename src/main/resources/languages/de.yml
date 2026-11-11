@@ -625,6 +625,25 @@ itemedit:
       - '&bVerläufe werden aus den Farben zurückgerechnet.'
       - '&bKlick auf eine Zeile kopiert sie.'
     params: ''
+  copy:
+    feedback: '&9[&fItemEdit&9] &aName, Beschreibung und Verzauberungen kopiert'
+    nothing: '&4[&cItemEdit&4] &cDas Item hat weder Namen, Beschreibung noch Verzauberungen!'
+    description:
+      - '&6&lKopiere Name, Beschreibung und Verzauberungen'
+      - ''
+      - '&bEinfügen mit &e/ie paste&b.'
+      - '&bNutzt dieselbe Ablage wie &erename -copy&b,'
+      - '&elore copy &bund &eenchant -copy&b.'
+    params: 'all'
+  paste:
+    feedback: '&9[&fItemEdit&9] &aName, Beschreibung und Verzauberungen eingefügt'
+    no-copy: '&4[&cItemEdit&4] &cKopiere zuerst ein Item mit /ie copy all!'
+    description:
+      - '&6&lFüge kopierten Namen, Beschreibung und Verzauberungen ein'
+      - ''
+      - '&bNur vorhandene Werte werden eingefügt,'
+      - '&bVerzauberungen werden ergänzt.'
+    params: ''
   equipment:
     wrong-boolean: '&4[&cItemEdit&4] &cUngültiger Boolean-Wert! &4[&6hier hovern&4]'
     wrong-sound: '&4[&cItemEdit&4] &cUngültiger Sound-Wert! &4[&6hier hovern&4]'

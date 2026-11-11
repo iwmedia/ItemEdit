@@ -253,6 +253,21 @@ public abstract class AbstractCommand implements TabExecutor {
         return null;
     }
 
+    /**
+     * Returns the registered sub-command of the given type.
+     *
+     * @param type sub-command class
+     * @return the sub-command, or null if none of this type is registered
+     */
+    public <T extends SubCmd> @Nullable T getSubCmd(@NotNull Class<T> type) {
+        for (SubCmd subCmd : subCmds) {
+            if (type.isInstance(subCmd)) {
+                return type.cast(subCmd);
+            }
+        }
+        return null;
+    }
+
     public void completeCmd(@NotNull List<String> l,
                             @NotNull String prefix,
                             @NotNull CommandSender sender) {

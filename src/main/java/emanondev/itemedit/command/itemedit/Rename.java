@@ -31,6 +31,10 @@ public class Rename extends SubCmd {
         this.lengthLimit = this.getPlugin().getConfig().getInt("blocked.rename-length-limit", 120);
     }
 
+    Map<UUID, String> getCopies() {
+        return this.copies;
+    }
+
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;

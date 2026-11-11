@@ -39,6 +39,10 @@ public class Lore extends SubCmd {
         lengthLimit = getPlugin().getConfig().getInt("blocked.lore-length-limit", 120);
     }
 
+    Map<UUID, List<String>> getCopies() {
+        return copies;
+    }
+
     private boolean allowedLineLimit(Player who, int lines) {
         if (lineLimit < 0 || who.hasPermission("itemedit.bypass.lore_line_limit")) {
             return true;
