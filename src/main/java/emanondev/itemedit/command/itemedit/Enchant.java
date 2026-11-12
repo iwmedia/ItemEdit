@@ -22,6 +22,10 @@ public class Enchant extends SubCmd {
         super("enchant", cmd, true, true);
     }
 
+    Map<UUID, Map<Enchantment, Integer>> getCopies() {
+        return this.copies;
+    }
+
     @Override
     public void onCommand(@NotNull CommandSender sender, @NotNull String alias, String[] args) {
         Player p = (Player) sender;
